@@ -51,11 +51,11 @@ class PhotoFragment : Fragment() {
                             when(result.status) {
                                 ApiStatus.SUCCESS ->  {
                                     println("I/o success ${result.data}")
-                                    binding.photoProgressBar.isVisible = false
                                     Glide.with(this@PhotoFragment)
                                         .load(result.data?.linkBigPhoto)
                                         .fitCenter()
                                         .into(binding.photoImage)
+                                    binding.photoProgressBar.isVisible = false
                                 }
                                 ApiStatus.ERROR ->   {
                                     println("I/o error ${result.message}")
@@ -73,16 +73,10 @@ class PhotoFragment : Fragment() {
         }
     }
 
-
-    private fun updateUi() {
-
-    }
-
     private fun setupSwipeToRefresh() {
         binding.photoSwipeRefreshLayout.setOnRefreshListener {
-//            viewModel.isNewError = true
-//            adapter.refresh()
-//            binding.selectionsSwipeRefreshLayout.isRefreshing = false
+            viewModel.refresh()
+            binding.photoSwipeRefreshLayout.isRefreshing = false
         }
     }
 
