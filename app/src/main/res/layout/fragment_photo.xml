@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -12,6 +12,7 @@
         android:layout_height="match_parent">
 
         <androidx.core.widget.NestedScrollView
+            android:id="@+id/photoNestedScrollView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -19,7 +20,6 @@
                 android:id="@+id/photoImage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/teal_200"
                 android:fitsSystemWindows="true"
                 tools:ignore="ContentDescription" />
 
@@ -35,4 +35,17 @@
         android:elevation="@dimen/progress_bar_elevation"
         android:visibility="invisible" />
 
-</FrameLayout>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/photoFabFavorites"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/FAB_margin"
+        android:layout_marginBottom="@dimen/FAB_margin"
+        android:elevation="@dimen/FAB_elevation"
+        app:backgroundTint="#CCCCCC"
+        app:layout_anchor="@id/photoNestedScrollView"
+        app:layout_anchorGravity="bottom|end"
+        app:srcCompat="@drawable/ic_baseline_favorite_border"
+        tools:ignore="ContentDescription" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

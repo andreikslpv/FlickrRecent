@@ -5,4 +5,19 @@
     <dimen name="progress_bar_dimen">50dp</dimen>
     <dimen name="progress_bar_elevation">12dp</dimen>
 
+    <!-- for FAB -->
+    <dimen name="FAB_margin">8dp</dimen>
+    <dimen name="FAB_elevation">12dp</dimen>
+
+    <!-- for RV and her item -->
+    <dimen name="card_margin">8dp</dimen>
+    <dimen name="card_elevation">8dp</dimen>
+    <dimen name="card_corner_radius">10dp</dimen>
+    <dimen name="card_dimen">150dp</dimen>
+    <dimen name="FAB_dimen">24dp</dimen>
+    <dimen name="margin_of_RV">4dp</dimen>
+    <dimen name="item_padding">4dp</dimen>
+
+    <dimen name="margin_of_elements">8dp</dimen>
+
 </resources>

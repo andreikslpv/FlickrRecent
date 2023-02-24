@@ -2,6 +2,7 @@ package com.andreikslpv.flickrrecent.domain
 
 import com.andreikslpv.flickrrecent.domain.models.ApiResult
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 interface PhotosRepository {
@@ -9,6 +10,14 @@ interface PhotosRepository {
 
     fun refreshRecentPhoto()
 
-    fun addPhotoInFavorites(photo: PhotoDomainModel)
+    suspend fun addPhotoInFavorites(photo: PhotoDomainModel)
+
+    suspend fun removePhotoFromFavorites(photoId: String)
+
+    fun getPhotoStatus(): MutableStateFlow<Boolean>
+
+    fun isPhotoFavorites(photoId: String): Boolean
+
+    fun getFavorites(): Flow<List<PhotoDomainModel>>
 
 }

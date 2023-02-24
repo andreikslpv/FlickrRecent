@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
+    id 'io.realm.kotlin' version '1.6.0'
 }
 
 android {
@@ -56,10 +57,14 @@ dependencies {
     //Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
-    // Kotlin extensions for 'fragment' artifact
+    // Kotlin extensions for 'fragment'
     implementation "androidx.fragment:fragment-ktx:1.5.5"
     // pull-to-refresh
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+    //Realm
+    implementation 'io.realm.kotlin:library-base:1.6.0'
+    implementation 'io.realm:realm-annotations:10.6.0'
+//    implementation 'io.realm:realm-android-kotlin-extensions:10.6.0'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

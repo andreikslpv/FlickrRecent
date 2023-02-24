@@ -11,12 +11,15 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.andreikslpv.flickrrecent.App
+import com.andreikslpv.flickrrecent.R
 import com.andreikslpv.flickrrecent.databinding.FragmentPhotoBinding
-import com.andreikslpv.flickrrecent.domain.models.ApiResult
 import com.andreikslpv.flickrrecent.domain.models.ApiStatus
+import com.andreikslpv.flickrrecent.domain.usecase.ChangePhotoStatusUseCase
 import com.andreikslpv.flickrrecent.presentation.vm.PhotoFragmentViewModel
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 
 class PhotoFragment : Fragment() {
@@ -24,7 +27,15 @@ class PhotoFragment : Fragment() {
     private val binding
         get() = _binding!!
 
+    @Inject
+    lateinit var changePhotoStatusUseCase: ChangePhotoStatusUseCase
+
     private val viewModel: PhotoFragmentViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        App.instance.dagger.inject(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,6 +50,7 @@ class PhotoFragment : Fragment() {
 
         setCollectors()
         setupSwipeToRefresh()
+        initButtons()
     }
 
     private fun setCollectors() {
@@ -47,9 +59,9 @@ class PhotoFragment : Fragment() {
 
                 viewLifecycleOwner.lifecycleScope.launch {
                     viewModel.photoStateFlow
-                        .collect {result ->
-                            when(result.status) {
-                                ApiStatus.SUCCESS ->  {
+                        .collect { result ->
+                            when (result.status) {
+                                ApiStatus.SUCCESS -> {
                                     println("I/o success ${result.data}")
                                     Glide.with(this@PhotoFragment)
                                         .load(result.data?.linkBigPhoto)
@@ -57,16 +69,27 @@ class PhotoFragment : Fragment() {
                                         .into(binding.photoImage)
                                     binding.photoProgressBar.isVisible = false
                                 }
-                                ApiStatus.ERROR ->   {
+                                ApiStatus.ERROR -> {
                                     println("I/o error ${result.message}")
                                     binding.photoProgressBar.isVisible = false
-                                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        requireContext(),
+                                        result.message,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
-                                ApiStatus.LOADING ->  {
+                                ApiStatus.LOADING -> {
                                     println("I/o loading")
                                     binding.photoProgressBar.isVisible = true
                                 }
                             }
+                        }
+                }
+
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewModel.photoStatusFlow
+                        .collect {
+                            setFavoritesIcon(it)
                         }
                 }
             }
@@ -78,6 +101,23 @@ class PhotoFragment : Fragment() {
             viewModel.refresh()
             binding.photoSwipeRefreshLayout.isRefreshing = false
         }
+    }
+
+    private fun initButtons() {
+        binding.photoFabFavorites.setOnClickListener {
+            viewModel.photoStateFlow.value.data?.let { photo ->
+                changePhotoStatusUseCase.execute(
+                    photo
+                )
+            }
+        }
+    }
+
+    private fun setFavoritesIcon(isEnable: Boolean) {
+        binding.photoFabFavorites.setImageResource(
+            if (isEnable) R.drawable.ic_baseline_favorite
+            else R.drawable.ic_baseline_favorite_border
+        )
     }
 
     override fun onDestroy() {
