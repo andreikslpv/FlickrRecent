@@ -20,4 +20,10 @@ interface PhotosRepository {
 
     fun getFavorites(): Flow<List<PhotoDomainModel>>
 
+    suspend fun savePhotoToCache()
+
+    suspend fun savePhotoToDisk()
+
+    fun loadPhotoFromCache()
+
 }

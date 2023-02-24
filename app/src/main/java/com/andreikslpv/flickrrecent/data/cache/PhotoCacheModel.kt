@@ -1,13 +1,16 @@
-package com.andreikslpv.flickrrecent.data.db
+package com.andreikslpv.flickrrecent.data.cache
 
 import io.realm.annotations.Required
 import io.realm.kotlin.types.RealmObject
 import io.realm.kotlin.types.annotations.PrimaryKey
 
-open class PhotoRealmModel : RealmObject {
+class PhotoCacheModel: RealmObject {
 
     @PrimaryKey
-    var id: String = ""
+    var id: String = "1"
+
+    @Required
+    var photoId: String = ""
 
     @Required
     var linkSmallPhoto: String = ""
@@ -18,5 +21,3 @@ open class PhotoRealmModel : RealmObject {
     var owner: String = ""
     var title: String = ""
 }
-
-

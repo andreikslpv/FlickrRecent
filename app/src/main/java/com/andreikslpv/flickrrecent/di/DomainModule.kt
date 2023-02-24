@@ -44,4 +44,10 @@ class DomainModule {
     fun provideGetFavoritesUseCase(photosRepository: PhotosRepository): GetFavoritesUseCase {
         return GetFavoritesUseCase(photosRepository)
     }
+
+    @Provides
+    @Singleton
+    fun provideLoadPhotoFromCacheUseCase(photosRepository: PhotosRepository): LoadPhotoFromCacheUseCase {
+        return LoadPhotoFromCacheUseCase(photosRepository)
+    }
 }

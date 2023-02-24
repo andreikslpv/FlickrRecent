@@ -3,5 +3,6 @@
     <string name="menu_photo">Фото</string>
     <string name="menu_gallery">Избранное</string>
     <string name="unknown_error">unknown error</string>
+    <string name="load_from_cache">Фото загружено из кэша</string>
 
 </resources>

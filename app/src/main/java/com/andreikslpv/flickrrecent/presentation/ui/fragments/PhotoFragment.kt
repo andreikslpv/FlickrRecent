@@ -16,11 +16,14 @@ import com.andreikslpv.flickrrecent.R
 import com.andreikslpv.flickrrecent.databinding.FragmentPhotoBinding
 import com.andreikslpv.flickrrecent.domain.models.ApiStatus
 import com.andreikslpv.flickrrecent.domain.usecase.ChangePhotoStatusUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.LoadPhotoFromCacheUseCase
 import com.andreikslpv.flickrrecent.presentation.vm.PhotoFragmentViewModel
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
+const val NAME_OF_CACHE = "lastCachedPhoto.png"
 
 class PhotoFragment : Fragment() {
     private var _binding: FragmentPhotoBinding? = null
@@ -29,6 +32,9 @@ class PhotoFragment : Fragment() {
 
     @Inject
     lateinit var changePhotoStatusUseCase: ChangePhotoStatusUseCase
+
+    @Inject
+    lateinit var loadPhotoFromCacheUseCase: LoadPhotoFromCacheUseCase
 
     private val viewModel: PhotoFragmentViewModel by viewModels()
 
@@ -58,32 +64,43 @@ class PhotoFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
 
                 viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.photoStateFlow
-                        .collect { result ->
-                            when (result.status) {
-                                ApiStatus.SUCCESS -> {
-                                    println("I/o success ${result.data}")
-                                    Glide.with(this@PhotoFragment)
-                                        .load(result.data?.linkBigPhoto)
-                                        .fitCenter()
-                                        .into(binding.photoImage)
-                                    binding.photoProgressBar.isVisible = false
-                                }
-                                ApiStatus.ERROR -> {
-                                    println("I/o error ${result.message}")
-                                    binding.photoProgressBar.isVisible = false
-                                    Toast.makeText(
-                                        requireContext(),
-                                        result.message,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                                ApiStatus.LOADING -> {
-                                    println("I/o loading")
-                                    binding.photoProgressBar.isVisible = true
-                                }
+                    viewModel.photoStateFlow.collect { result ->
+                        when (result.status) {
+                            ApiStatus.SUCCESS -> {
+                                println("I/o success ${result.data}")
+                                Glide.with(this@PhotoFragment)
+                                    .load(result.data?.linkBigPhoto)
+                                    .fitCenter()
+                                    .into(binding.photoImage)
+                                binding.photoProgressBar.isVisible = false
+                            }
+                            ApiStatus.ERROR -> {
+                                println("I/o error ${result.message}")
+                                binding.photoProgressBar.isVisible = false
+                                Toast.makeText(
+                                    requireContext(),
+                                    result.message,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                loadPhotoFromCacheUseCase.execute()
+                            }
+                            ApiStatus.LOADING -> {
+                                binding.photoProgressBar.isVisible = true
+                            }
+                            ApiStatus.CACHE -> {
+                                Glide.with(this@PhotoFragment)
+                                    .load("${requireContext().filesDir}${File.separator}$NAME_OF_CACHE")
+                                    .fitCenter()
+                                    .into(binding.photoImage)
+                                binding.photoProgressBar.isVisible = false
+                                Toast.makeText(
+                                    requireContext(),
+                                    getString(R.string.load_from_cache),
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
+                    }
                 }
 
                 viewLifecycleOwner.lifecycleScope.launch {

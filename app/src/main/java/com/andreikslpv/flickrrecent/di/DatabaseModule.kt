@@ -1,5 +1,6 @@
 package com.andreikslpv.flickrrecent.di
 
+import com.andreikslpv.flickrrecent.data.cache.PhotoCacheModel
 import com.andreikslpv.flickrrecent.data.db.PhotoRealmModel
 import dagger.Module
 import dagger.Provides
@@ -13,7 +14,7 @@ class DatabaseModule {
     @Singleton
     @Provides
     fun providesRealmConfig(): RealmConfiguration =
-        RealmConfiguration.create(setOf(PhotoRealmModel::class))
+        RealmConfiguration.create(setOf(PhotoRealmModel::class, PhotoCacheModel::class))
 
     @Singleton
     @Provides
