@@ -4,14 +4,24 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.Fragment
+import com.andreikslpv.flickrrecent.App
 import com.andreikslpv.flickrrecent.R
 import com.andreikslpv.flickrrecent.databinding.ActivityMainBinding
+import com.andreikslpv.flickrrecent.domain.usecase.InitApplicationSettingsUseCase
 import com.andreikslpv.flickrrecent.presentation.ui.fragments.GalleryFragment
 import com.andreikslpv.flickrrecent.presentation.ui.fragments.PhotoFragment
 import com.andreikslpv.flickrrecent.presentation.ui.utils.FragmentsType
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+
+    @Inject
+    lateinit var initApplicationSettingsUseCase: InitApplicationSettingsUseCase
+
+    init {
+        App.instance.dagger.inject(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -19,10 +29,16 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        initApplicationSettings()
         initBottomNavigationMenu()
         // если первый, то запускаем фрагмент Photo
         if (savedInstanceState == null)
             changeFragment(PhotoFragment(), FragmentsType.PHOTO)
+    }
+
+    private fun initApplicationSettings() {
+        // устанавливаем сохраненные настройки приложения
+        initApplicationSettingsUseCase.execute()
     }
 
     private fun initBottomNavigationMenu() {

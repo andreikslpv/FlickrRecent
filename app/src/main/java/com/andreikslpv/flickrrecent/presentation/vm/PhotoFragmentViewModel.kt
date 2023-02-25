@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.andreikslpv.flickrrecent.App
 import com.andreikslpv.flickrrecent.domain.models.ApiResult
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
+import com.andreikslpv.flickrrecent.domain.usecase.GetNotificationStatusUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.GetPhotoStatusUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.GetRecentPhotoUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.RefreshRecentPhotoUseCase
@@ -19,13 +20,21 @@ class PhotoFragmentViewModel : ViewModel() {
     val photoStatusFlow: StateFlow<Boolean> by lazy {
         getPhotoStatusUseCase.execute().asStateFlow()
     }
+    val notificationStatusFlow: StateFlow<Boolean> by lazy {
+        getNotificationStatusUseCase.execute().asStateFlow()
+    }
 
     @Inject
     lateinit var getRecentPhotoUseCase: GetRecentPhotoUseCase
+
     @Inject
     lateinit var refreshRecentPhotoUseCase: RefreshRecentPhotoUseCase
+
     @Inject
     lateinit var getPhotoStatusUseCase: GetPhotoStatusUseCase
+
+    @Inject
+    lateinit var getNotificationStatusUseCase: GetNotificationStatusUseCase
 
     init {
         App.instance.dagger.inject(this)

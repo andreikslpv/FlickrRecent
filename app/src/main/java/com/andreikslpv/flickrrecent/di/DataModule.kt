@@ -1,7 +1,9 @@
 package com.andreikslpv.flickrrecent.di
 
 import com.andreikslpv.flickrrecent.data.PhotosRepositoryImpl
+import com.andreikslpv.flickrrecent.data.SettingsRepositoryImpl
 import com.andreikslpv.flickrrecent.domain.PhotosRepository
+import com.andreikslpv.flickrrecent.domain.SettingsRepository
 import dagger.Binds
 import dagger.Module
 import javax.inject.Singleton
@@ -12,4 +14,8 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindPhotosRepository(photosRepositoryImpl: PhotosRepositoryImpl): PhotosRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSettingsRepository(settingsRepositoryImpl: SettingsRepositoryImpl): SettingsRepository
 }

@@ -1,6 +1,7 @@
 package com.andreikslpv.flickrrecent.di
 
 import com.andreikslpv.flickrrecent.domain.PhotosRepository
+import com.andreikslpv.flickrrecent.domain.SettingsRepository
 import com.andreikslpv.flickrrecent.domain.usecase.*
 import dagger.Module
 import dagger.Provides
@@ -8,6 +9,30 @@ import javax.inject.Singleton
 
 @Module
 class DomainModule {
+
+    @Provides
+    @Singleton
+    fun provideInitApplicationSettingsUseCase(
+        settingsRepository: SettingsRepository,
+        photosRepository: PhotosRepository
+    ): InitApplicationSettingsUseCase {
+        return InitApplicationSettingsUseCase(settingsRepository, photosRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideInverseBooleanSettingValueUseCase(
+        settingsRepository: SettingsRepository,
+        photosRepository: PhotosRepository
+    ): InverseBooleanSettingValueUseCase {
+        return InverseBooleanSettingValueUseCase(settingsRepository, photosRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetNotificationStatusUseCase(photosRepository: PhotosRepository): GetNotificationStatusUseCase {
+        return GetNotificationStatusUseCase(photosRepository)
+    }
 
     @Provides
     @Singleton

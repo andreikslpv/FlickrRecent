@@ -6,6 +6,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 interface PhotosRepository {
+
+    fun setNotificationStatus(enable: Boolean)
+
+    fun getNotificationStatus(): MutableStateFlow<Boolean>
+
     fun getRecentPhoto(): MutableStateFlow<ApiResult<PhotoDomainModel>>
 
     fun refreshRecentPhoto()

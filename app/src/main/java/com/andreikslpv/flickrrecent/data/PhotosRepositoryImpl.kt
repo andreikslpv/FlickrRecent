@@ -14,13 +14,10 @@ import io.realm.kotlin.Realm
 import io.realm.kotlin.UpdatePolicy
 import io.realm.kotlin.ext.query
 import io.realm.kotlin.query.RealmResults
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
@@ -32,6 +29,7 @@ import kotlin.coroutines.suspendCoroutine
 
 
 const val NAME_OF_CACHE = "lastCachedPhoto.png"
+const val UPDATE_TIME_INTERVAL = 60000L
 
 class PhotosRepositoryImpl @Inject constructor(
     private val flickrApi: FlickrApi,
@@ -41,6 +39,25 @@ class PhotosRepositoryImpl @Inject constructor(
     private val start: ApiResult<PhotoDomainModel> = ApiResult.Loading(null, true)
     private val _currentResult = MutableStateFlow(start)
     private val _currentPhotoStatus = MutableStateFlow(false)
+    private val _currentNotificationStatus = MutableStateFlow(false)
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            while (true) {
+                delay(UPDATE_TIME_INTERVAL)
+                refreshRecentPhoto()
+                if (_currentNotificationStatus.value) println("I/o notification")
+            }
+        }
+    }
+
+    override fun setNotificationStatus(enable: Boolean) {
+        _currentNotificationStatus.tryEmit(enable)
+    }
+
+    override fun getNotificationStatus(): MutableStateFlow<Boolean> {
+        return _currentNotificationStatus
+    }
 
     override fun getRecentPhoto(): MutableStateFlow<ApiResult<PhotoDomainModel>> {
         return _currentResult
@@ -57,8 +74,7 @@ class PhotosRepositoryImpl @Inject constructor(
                     val photos = response.body()?.photos?.photo
                     if (photos.isNullOrEmpty()) {
                         _currentResult.tryEmit(ApiResult.Error("unknown error"))
-                    }
-                    else {
+                    } else {
                         _currentResult.tryEmit(ApiResult.Success(DtoToDomainMapper.map(photos[0])))
                         savePhotoToDisk()
                         savePhotoToCache()
@@ -110,7 +126,7 @@ class PhotosRepositoryImpl @Inject constructor(
 
     override suspend fun savePhotoToCache() {
         realmDb.write {
-            val cachedPhoto =  DomainToCacheMapper.map(_currentResult.value.data)
+            val cachedPhoto = DomainToCacheMapper.map(_currentResult.value.data)
             copyToRealm(cachedPhoto, UpdatePolicy.ALL)
         }
     }
