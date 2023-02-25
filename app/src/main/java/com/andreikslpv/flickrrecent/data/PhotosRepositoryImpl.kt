@@ -3,8 +3,10 @@ package com.andreikslpv.flickrrecent.data
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.work.*
 import com.andreikslpv.flickrrecent.data.api.DtoToDomainMapper
 import com.andreikslpv.flickrrecent.data.api.FlickrApi
+import com.andreikslpv.flickrrecent.presentation.wm.PhotoWorker
 import com.andreikslpv.flickrrecent.data.cache.PhotoCacheModel
 import com.andreikslpv.flickrrecent.data.db.*
 import com.andreikslpv.flickrrecent.domain.PhotosRepository
@@ -22,6 +24,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.resume
@@ -30,6 +33,7 @@ import kotlin.coroutines.suspendCoroutine
 
 const val NAME_OF_CACHE = "lastCachedPhoto.png"
 const val UPDATE_TIME_INTERVAL = 60000L
+const val WORKER_TAG = "photo_tag"
 
 class PhotosRepositoryImpl @Inject constructor(
     private val flickrApi: FlickrApi,
@@ -42,14 +46,17 @@ class PhotosRepositoryImpl @Inject constructor(
     private val _currentNotificationStatus = MutableStateFlow(false)
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
-            while (true) {
-                delay(UPDATE_TIME_INTERVAL)
-                refreshRecentPhoto()
-                if (_currentNotificationStatus.value) println("I/o notification")
-            }
-        }
+        //runHeavyWork()
+//        CoroutineScope(Dispatchers.IO).launch {
+//            while (true) {
+//                delay(UPDATE_TIME_INTERVAL)
+//                refreshRecentPhoto()
+//                if (_currentNotificationStatus.value) println("I/o notification")
+//            }
+//        }
     }
+
+
 
     override fun setNotificationStatus(enable: Boolean) {
         _currentNotificationStatus.tryEmit(enable)

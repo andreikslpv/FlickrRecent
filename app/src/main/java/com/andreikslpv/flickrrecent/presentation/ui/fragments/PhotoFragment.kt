@@ -72,7 +72,6 @@ class PhotoFragment : Fragment() {
                     viewModel.photoStateFlow.collect { result ->
                         when (result.status) {
                             ApiStatus.SUCCESS -> {
-                                println("I/o success ${result.data}")
                                 Glide.with(this@PhotoFragment)
                                     .load(result.data?.linkBigPhoto)
                                     .fitCenter()
@@ -80,11 +79,10 @@ class PhotoFragment : Fragment() {
                                 binding.photoProgressBar.isVisible = false
                             }
                             ApiStatus.ERROR -> {
-                                println("I/o error ${result.message}")
                                 binding.photoProgressBar.isVisible = false
                                 Toast.makeText(
                                     requireContext(),
-                                    result.message,
+                                    getString(R.string.api_error),
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 loadPhotoFromCacheUseCase.execute()

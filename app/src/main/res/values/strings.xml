@@ -4,5 +4,7 @@
     <string name="menu_gallery">Избранное</string>
     <string name="unknown_error">unknown error</string>
     <string name="load_from_cache">Фото загружено из кэша</string>
+    <string name="notification_message">На Flickr есть что-то новое...</string>
+    <string name="api_error">Не удалось загрузить фото с сайта</string>
 
 </resources>

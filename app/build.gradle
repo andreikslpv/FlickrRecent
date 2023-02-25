@@ -64,7 +64,8 @@ dependencies {
     //Realm
     implementation 'io.realm.kotlin:library-base:1.6.0'
     implementation 'io.realm:realm-annotations:10.6.0'
-//    implementation 'io.realm:realm-android-kotlin-extensions:10.6.0'
+    //WorkManager
+    implementation 'androidx.work:work-runtime-ktx:2.8.0'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
