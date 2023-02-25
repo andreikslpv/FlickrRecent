@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <dimen name="angle_of_shape">45</dimen>
     <!-- for ProgressBar -->
     <dimen name="progress_bar_dimen">50dp</dimen>
     <dimen name="progress_bar_elevation">12dp</dimen>

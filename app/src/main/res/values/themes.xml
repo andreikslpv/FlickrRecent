@@ -13,4 +13,13 @@
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+
+
+    <style name="Theme.FlickrRecent.Starting" parent="Theme.SplashScreen">
+        <!-- The splash screen background, animated icon, and animation duration -->
+        <item name="windowSplashScreenBackground">@drawable/background_splash</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_logo</item>
+        <item name="windowSplashScreenAnimationDuration">0</item>
+        <item name="postSplashScreenTheme">@style/Theme.FlickrRecent</item>
+    </style>
 </resources>
