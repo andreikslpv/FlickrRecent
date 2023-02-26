@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -19,6 +18,8 @@ import com.andreikslpv.flickrrecent.domain.models.SettingsBooleanType
 import com.andreikslpv.flickrrecent.domain.usecase.ChangePhotoStatusUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.InverseBooleanSettingValueUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.LoadPhotoFromCacheUseCase
+import com.andreikslpv.flickrrecent.presentation.ui.MainActivity
+import com.andreikslpv.flickrrecent.presentation.ui.utils.makeToast
 import com.andreikslpv.flickrrecent.presentation.vm.PhotoFragmentViewModel
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
@@ -80,11 +81,7 @@ class PhotoFragment : Fragment() {
                             }
                             ApiStatus.ERROR -> {
                                 binding.photoProgressBar.isVisible = false
-                                Toast.makeText(
-                                    requireContext(),
-                                    getString(R.string.api_error),
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                getString(R.string.api_error).makeToast(requireContext())
                                 loadPhotoFromCacheUseCase.execute()
                             }
                             ApiStatus.LOADING -> {
@@ -96,11 +93,7 @@ class PhotoFragment : Fragment() {
                                     .fitCenter()
                                     .into(binding.photoImage)
                                 binding.photoProgressBar.isVisible = false
-                                Toast.makeText(
-                                    requireContext(),
-                                    getString(R.string.load_from_cache),
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                getString(R.string.load_from_cache).makeToast(requireContext())
                             }
                         }
                     }

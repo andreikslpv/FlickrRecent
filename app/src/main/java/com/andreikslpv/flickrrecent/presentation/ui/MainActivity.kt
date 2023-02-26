@@ -1,18 +1,16 @@
 package com.andreikslpv.flickrrecent.presentation.ui
 
-//import androidx.fragment.app.activityViewModels
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.andreikslpv.flickrrecent.App
 import com.andreikslpv.flickrrecent.R
 import com.andreikslpv.flickrrecent.databinding.ActivityMainBinding
@@ -22,8 +20,8 @@ import com.andreikslpv.flickrrecent.presentation.ui.fragments.PhotoFragment
 import com.andreikslpv.flickrrecent.presentation.ui.utils.CHANNEL_ID
 import com.andreikslpv.flickrrecent.presentation.ui.utils.FragmentsType
 import com.andreikslpv.flickrrecent.presentation.ui.utils.NOTIFICATION_TITLE
+import com.andreikslpv.flickrrecent.presentation.ui.utils.makeToast
 import com.andreikslpv.flickrrecent.presentation.vm.MainActivityViewModel
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
@@ -33,6 +31,26 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var initApplicationSettingsUseCase: InitApplicationSettingsUseCase
+
+    private val singlePermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                when {
+                    granted -> {
+                        // уведомления разрешены
+                    }
+                    !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
+                        // уведомления запрещены, пользователь поставил галочку Don't ask again.
+                        // сообщаем пользователю, что он может в дальнейшем разрешить уведомления
+                        getString(R.string.details_allow_later_in_settings).makeToast(this)
+                    }
+                    else -> {
+                        // уведомления запрещены, пользователь отклонил запрос
+                    }
+                }
+            }
+        }
+
 
     init {
         App.instance.dagger.inject(this)
@@ -44,17 +62,15 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel.isActivityNotRunning = false
-        createChannel(
-            CHANNEL_ID,
-            CHANNEL_ID
-        )
+        viewModel.setActivityStatusIsNotRunning(false)
+        createChannel(CHANNEL_ID, CHANNEL_ID)
+
         initApplicationSettings()
         initBottomNavigationMenu()
         // если первый, то запускаем фрагмент Photo
         if (savedInstanceState == null)
             changeFragment(PhotoFragment(), FragmentsType.PHOTO)
-
+        requestPermission()
     }
 
     private fun initApplicationSettings() {
@@ -82,7 +98,6 @@ class MainActivity : AppCompatActivity() {
                 NotificationManager::class.java
             )
             notificationManager.createNotificationChannel(notificationChannel)
-
         }
     }
 
@@ -92,15 +107,15 @@ class MainActivity : AppCompatActivity() {
             when (it.itemId) {
                 R.id.photo -> {
                     if (currentFragment !is PhotoFragment) {
-                        val fragment = checkFragmentExistence(FragmentsType.PHOTO)
-                        changeFragment(fragment ?: PhotoFragment(), FragmentsType.PHOTO)
+                        changeFragment(PhotoFragment(), FragmentsType.PHOTO)
+                        viewModel.setActivityStatusIsNotRunning(false)
                     }
                     true
                 }
                 R.id.gallery -> {
                     if (currentFragment !is GalleryFragment) {
-                        val fragment = checkFragmentExistence(FragmentsType.GALLERY)
-                        changeFragment(fragment ?: GalleryFragment(), FragmentsType.GALLERY)
+                        changeFragment(GalleryFragment(), FragmentsType.GALLERY)
+                        viewModel.setActivityStatusIsNotRunning(false)
                     }
                     true
                 }
@@ -108,10 +123,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-    //Ищем фрагмент по тегу, если он есть то возвращаем его, если нет, то null
-    private fun checkFragmentExistence(type: FragmentsType): Fragment? =
-        supportFragmentManager.findFragmentByTag(type.tag)
 
     private fun changeFragment(fragment: Fragment, type: FragmentsType) {
         supportFragmentManager
@@ -121,13 +132,26 @@ class MainActivity : AppCompatActivity() {
             .commit()
     }
 
+    private fun requestPermission() {
+        // если Андройд 13+ то запрашиваем разрешение на показ уведомлений
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                // уведомления запрещены, нужно объяснить зачем нам требуется разрешение
+                singlePermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                singlePermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+
+    }
+
     override fun onPause() {
         super.onPause()
-        viewModel.isActivityNotRunning = true
+        viewModel.setActivityStatusIsNotRunning(true)
     }
 
     override fun onResume() {
         super.onResume()
-        viewModel.isActivityNotRunning = false
+        viewModel.setActivityStatusIsNotRunning(false)
     }
 }

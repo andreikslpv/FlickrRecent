@@ -12,7 +12,11 @@ import androidx.core.app.AlarmManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import com.andreikslpv.flickrrecent.App
+import com.andreikslpv.flickrrecent.domain.models.ApiResult
+import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
 import com.andreikslpv.flickrrecent.domain.usecase.GetNotificationStatusUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.GetRecentPhotoUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.RefreshRecentPhotoUseCase
 import com.andreikslpv.flickrrecent.presentation.ui.utils.AlarmReceiver
 import com.andreikslpv.flickrrecent.presentation.ui.utils.cancelNotifications
 import kotlinx.coroutines.*
@@ -30,14 +34,25 @@ class MainActivityViewModel : ViewModel() {
     private val notifyIntent = Intent(App.instance, AlarmReceiver::class.java)
     private var triggerTime: Long = 0L
 
-    var isActivityNotRunning = false
+    // false когда активити running, true - во всех остальных состояниях ЖЦ
+    private var isNotRunning = false
 
     private val notificationStatusFlow: StateFlow<Boolean> by lazy {
         getNotificationStatusUseCase.execute().asStateFlow()
     }
 
+    private val photoStateFlow: StateFlow<ApiResult<PhotoDomainModel>> by lazy {
+        getRecentPhotoUseCase.execute().asStateFlow()
+    }
+
     @Inject
     lateinit var getNotificationStatusUseCase: GetNotificationStatusUseCase
+
+    @Inject
+    lateinit var refreshRecentPhotoUseCase: RefreshRecentPhotoUseCase
+
+    @Inject
+    lateinit var getRecentPhotoUseCase: GetRecentPhotoUseCase
 
     init {
         App.instance.dagger.inject(this)
@@ -57,36 +72,43 @@ class MainActivityViewModel : ViewModel() {
                 PendingIntent.FLAG_UPDATE_CURRENT
             )
         }
-        CoroutineScope(Dispatchers.IO).launch {
-            while(true) {
-                delay(TIME_INTERVAL)
-                withContext(Dispatchers.Main) {
-                    startTimer()
-                }
-            }
-        }
-
+        startTimer()
     }
 
     private fun startTimer() {
-        println("!!! ${notificationStatusFlow.value} $isActivityNotRunning")
-        if (notificationStatusFlow.value && isActivityNotRunning) {
-            triggerTime = SystemClock.elapsedRealtime() + TIME_INTERVAL
+        CoroutineScope(Dispatchers.IO).launch {
+            while (true) {
+                delay(TIME_INTERVAL)
+                withContext(Dispatchers.Main) {
+                    val notificationManager = ContextCompat.getSystemService(
+                        App.instance,
+                        NotificationManager::class.java
+                    ) as NotificationManager
+                    notificationManager.cancelNotifications()
 
-            val notificationManager =
-                ContextCompat.getSystemService(
-                    App.instance,
-                    NotificationManager::class.java
-                ) as NotificationManager
-            notificationManager.cancelNotifications()
+                    if (notificationStatusFlow.value
+                        && isNotRunning
+                        && (photoStateFlow.value is ApiResult.Success || photoStateFlow.value is ApiResult.Loading)
+                    ) {
+                        triggerTime = SystemClock.elapsedRealtime() + TIME_INTERVAL
+                        AlarmManagerCompat.setExactAndAllowWhileIdle(
+                            alarmManager,
+                            AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                            triggerTime,
+                            notifyPendingIntent
+                        )
+                    }
 
-            AlarmManagerCompat.setExactAndAllowWhileIdle(
-                alarmManager,
-                AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                triggerTime,
-                notifyPendingIntent
-            )
+                    if (!isNotRunning) {
+                        refreshRecentPhotoUseCase.execute()
+                    }
+                }
+            }
         }
+    }
+
+    fun setActivityStatusIsNotRunning(notRunning: Boolean) {
+        isNotRunning = notRunning
     }
 
 }

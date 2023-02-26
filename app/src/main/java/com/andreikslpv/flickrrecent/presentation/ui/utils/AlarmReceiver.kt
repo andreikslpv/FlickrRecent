@@ -10,7 +10,6 @@ import com.andreikslpv.flickrrecent.R
 class AlarmReceiver: BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        println("!!! receive")
         val notificationManager = ContextCompat.getSystemService(
             context,
             NotificationManager::class.java

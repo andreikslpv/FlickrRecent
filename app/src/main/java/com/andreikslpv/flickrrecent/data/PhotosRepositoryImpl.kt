@@ -3,10 +3,8 @@ package com.andreikslpv.flickrrecent.data
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import androidx.work.*
 import com.andreikslpv.flickrrecent.data.api.DtoToDomainMapper
 import com.andreikslpv.flickrrecent.data.api.FlickrApi
-import com.andreikslpv.flickrrecent.presentation.wm.PhotoWorker
 import com.andreikslpv.flickrrecent.data.cache.PhotoCacheModel
 import com.andreikslpv.flickrrecent.data.db.*
 import com.andreikslpv.flickrrecent.domain.PhotosRepository
@@ -16,15 +14,17 @@ import io.realm.kotlin.Realm
 import io.realm.kotlin.UpdatePolicy
 import io.realm.kotlin.ext.query
 import io.realm.kotlin.query.RealmResults
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.resume
@@ -32,8 +32,6 @@ import kotlin.coroutines.suspendCoroutine
 
 
 const val NAME_OF_CACHE = "lastCachedPhoto.png"
-const val UPDATE_TIME_INTERVAL = 60000L
-const val WORKER_TAG = "photo_tag"
 
 class PhotosRepositoryImpl @Inject constructor(
     private val flickrApi: FlickrApi,
@@ -44,19 +42,6 @@ class PhotosRepositoryImpl @Inject constructor(
     private val _currentResult = MutableStateFlow(start)
     private val _currentPhotoStatus = MutableStateFlow(false)
     private val _currentNotificationStatus = MutableStateFlow(false)
-
-    init {
-        //runHeavyWork()
-//        CoroutineScope(Dispatchers.IO).launch {
-//            while (true) {
-//                delay(UPDATE_TIME_INTERVAL)
-//                refreshRecentPhoto()
-//                if (_currentNotificationStatus.value) println("I/o notification")
-//            }
-//        }
-    }
-
-
 
     override fun setNotificationStatus(enable: Boolean) {
         _currentNotificationStatus.tryEmit(enable)

@@ -6,5 +6,7 @@
     <string name="load_from_cache">Фото загружено из кэша</string>
     <string name="notification_message">На Flickr есть что-то новое...</string>
     <string name="api_error">Не удалось загрузить фото с сайта</string>
+    <string name="details_allow_later_in_settings">На вашем устройстве для приложения запрещены уведомления. Для получения уведомлений включите доступ в настройках для приложения</string>
+
 
 </resources>
