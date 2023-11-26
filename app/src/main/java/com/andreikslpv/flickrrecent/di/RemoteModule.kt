@@ -1,6 +1,6 @@
 package com.andreikslpv.flickrrecent.di
 
-import androidx.viewbinding.BuildConfig
+import com.andreikslpv.flickrrecent.BuildConfig
 import com.andreikslpv.flickrrecent.data.api.FlickrConstants
 import com.andreikslpv.flickrrecent.data.api.FlickrApi
 import dagger.Module
