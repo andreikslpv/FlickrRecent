@@ -13,20 +13,16 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.andreikslpv.flickrrecent.App
 import com.andreikslpv.flickrrecent.R
 import com.andreikslpv.flickrrecent.databinding.FragmentPhotoBinding
-import com.andreikslpv.flickrrecent.domain.models.ApiStatus
+import com.andreikslpv.flickrrecent.domain.models.Response
 import com.andreikslpv.flickrrecent.domain.models.SettingsBooleanType
 import com.andreikslpv.flickrrecent.domain.usecase.ChangePhotoStatusUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.InverseBooleanSettingValueUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.LoadPhotoFromCacheUseCase
-import com.andreikslpv.flickrrecent.presentation.ui.MainActivity
 import com.andreikslpv.flickrrecent.presentation.ui.utils.makeToast
 import com.andreikslpv.flickrrecent.presentation.vm.PhotoFragmentViewModel
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
-import java.io.File
 import javax.inject.Inject
-
-const val NAME_OF_CACHE = "lastCachedPhoto.png"
 
 class PhotoFragment : Fragment() {
     private var _binding: FragmentPhotoBinding? = null
@@ -60,57 +56,36 @@ class PhotoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setCollectors()
+        observeCurrentPhoto()
         setupSwipeToRefresh()
+
+        setCollectors()
         initButtons()
     }
 
-    private fun setCollectors() {
-        this.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
 
-                viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.photoStateFlow.collect { result ->
-                        when (result.status) {
-                            ApiStatus.SUCCESS -> {
-                                Glide.with(this@PhotoFragment)
-                                    .load(result.data?.linkBigPhoto)
-                                    .fitCenter()
-                                    .into(binding.photoImage)
-                                binding.photoProgressBar.isVisible = false
-                            }
-                            ApiStatus.ERROR -> {
-                                binding.photoProgressBar.isVisible = false
-                                getString(R.string.api_error).makeToast(requireContext())
-                                loadPhotoFromCacheUseCase.execute()
-                            }
-                            ApiStatus.LOADING -> {
-                                binding.photoProgressBar.isVisible = true
-                            }
-                            ApiStatus.CACHE -> {
-                                Glide.with(this@PhotoFragment)
-                                    .load("${requireContext().filesDir}${File.separator}$NAME_OF_CACHE")
-                                    .fitCenter()
-                                    .into(binding.photoImage)
-                                binding.photoProgressBar.isVisible = false
-                                getString(R.string.load_from_cache).makeToast(requireContext())
-                            }
-                        }
-                    }
+    private fun observeCurrentPhoto() {
+        viewModel.currentPhoto.observe(viewLifecycleOwner) { response ->
+            when (response) {
+                Response.Loading -> {
+                    binding.photoProgressBar.isVisible = true
                 }
 
-                viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.photoStatusFlow
-                        .collect {
-                            setFavoritesIcon(it)
-                        }
+                is Response.Success -> {
+                    Glide.with(this@PhotoFragment)
+                        .load(response.data.linkBigPhoto)
+                        .fitCenter()
+                        .into(binding.photoImage)
+                    binding.photoProgressBar.isVisible = false
                 }
 
-                viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.notificationStatusFlow
-                        .collect {
-                            setNotificationIcon(it)
-                        }
+                is Response.Failure -> {
+                    binding.photoProgressBar.isVisible = false
+                    getString(R.string.api_error).makeToast(requireContext())
                 }
             }
         }
@@ -123,11 +98,34 @@ class PhotoFragment : Fragment() {
         }
     }
 
+
+
+    private fun setCollectors() {
+        this.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewModel.photoStatusFlow
+                        .collect {
+                            setFavoritesIcon(it)
+                        }
+                }
+
+//                viewLifecycleOwner.lifecycleScope.launch {
+//                    viewModel.isNeedToUpdate
+//                        .collect {
+//                            setNotificationIcon(it)
+//                        }
+//                }
+            }
+        }
+    }
+
     private fun initButtons() {
         binding.photoFabFavorites.setOnClickListener {
-            viewModel.photoStateFlow.value.data?.let { photo ->
-                changePhotoStatusUseCase.execute(photo)
-            }
+//            viewModel.currentPhoto.value.data?.let { photo ->
+//                changePhotoStatusUseCase.execute(photo)
+//            }
         }
 
         binding.photoFabNotification.setOnClickListener {
@@ -149,8 +147,4 @@ class PhotoFragment : Fragment() {
         )
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
-    }
 }

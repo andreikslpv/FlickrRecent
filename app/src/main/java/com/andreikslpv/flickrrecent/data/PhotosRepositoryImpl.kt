@@ -6,10 +6,15 @@ import android.graphics.BitmapFactory
 import com.andreikslpv.flickrrecent.data.api.DtoToDomainMapper
 import com.andreikslpv.flickrrecent.data.api.FlickrApi
 import com.andreikslpv.flickrrecent.data.cache.PhotoCacheModel
-import com.andreikslpv.flickrrecent.data.db.*
+import com.andreikslpv.flickrrecent.data.db.CacheToDomainMapper
+import com.andreikslpv.flickrrecent.data.db.DomainToCacheMapper
+import com.andreikslpv.flickrrecent.data.db.DomainToRealmMapper
+import com.andreikslpv.flickrrecent.data.db.PhotoRealmModel
+import com.andreikslpv.flickrrecent.data.db.RealmToDomainListMapper
 import com.andreikslpv.flickrrecent.domain.PhotosRepository
 import com.andreikslpv.flickrrecent.domain.models.ApiResult
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
+import com.andreikslpv.flickrrecent.domain.models.Response
 import io.realm.kotlin.Realm
 import io.realm.kotlin.UpdatePolicy
 import io.realm.kotlin.ext.query
@@ -19,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.File
@@ -51,35 +57,37 @@ class PhotosRepositoryImpl @Inject constructor(
         return _currentNotificationStatus
     }
 
-    override fun getRecentPhoto(): MutableStateFlow<ApiResult<PhotoDomainModel>> {
-        return _currentResult
+    override fun getRecentPhoto() = flow {
+        emit(Response.Loading)
+        try {
+            val response = flickrApi.getPhotos()
+            if (response.isSuccessful) {
+                val photos = response.body()?.photos?.photo
+                if (photos.isNullOrEmpty()) {
+                    emit(Response.Failure(Throwable("unknown error")))
+                } else {
+                    emit(Response.Success(DtoToDomainMapper.map(photos[0])))
+                    savePhotoToDisk()
+                    savePhotoToCache()
+                }
+            } else {
+                val errorMsg = response.errorBody()?.string() ?: ""
+                response.errorBody()?.close()
+                _currentResult.tryEmit(ApiResult.Error(errorMsg))
+            }
+        } catch (e: Exception) {
+            emit(Response.Failure(e))
+        }
     }
 
-    override fun refreshRecentPhoto() {
-        _currentPhotoStatus.tryEmit(false)
-        CoroutineScope(EmptyCoroutineContext).launch {
-            _currentResult.tryEmit(ApiResult.Loading(null, true))
-
-            try {
-                val response = flickrApi.getPhotos()
-                if (response.isSuccessful) {
-                    val photos = response.body()?.photos?.photo
-                    if (photos.isNullOrEmpty()) {
-                        _currentResult.tryEmit(ApiResult.Error("unknown error"))
-                    } else {
-                        _currentResult.tryEmit(ApiResult.Success(DtoToDomainMapper.map(photos[0])))
-                        savePhotoToDisk()
-                        savePhotoToCache()
-                    }
-                } else {
-                    val errorMsg = response.errorBody()?.string() ?: ""
-                    response.errorBody()?.close()
-                    _currentResult.tryEmit(ApiResult.Error(errorMsg))
-                }
-            } catch (e: Exception) {
-                _currentResult.tryEmit(ApiResult.Error(e.message ?: "unknown error"))
-            }
-
+    override fun getPhotoFromCache() = flow {
+        emit(Response.Loading)
+        val photo =
+            realmDb.query<PhotoCacheModel>("id = $0", "1").find().firstOrNull()
+        if (photo != null) {
+            emit(Response.Success(CacheToDomainMapper.map(photo)))
+        } else {
+            emit(Response.Failure(Throwable("Cache is empty")))
         }
     }
 

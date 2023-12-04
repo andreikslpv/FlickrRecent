@@ -4,7 +4,7 @@ import io.realm.annotations.Required
 import io.realm.kotlin.types.RealmObject
 import io.realm.kotlin.types.annotations.PrimaryKey
 
-class PhotoCacheModel: RealmObject {
+class PhotoCacheModel : RealmObject {
 
     @PrimaryKey
     var id: String = "1"

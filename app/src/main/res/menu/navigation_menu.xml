@@ -10,5 +10,5 @@
         android:id="@+id/gallery"
         android:icon="@drawable/ic_baseline_favorite_border"
         android:title="@string/menu_gallery"
-        app:showAsAction="withText"/>
+        app:showAsAction="withText" />
 </menu>

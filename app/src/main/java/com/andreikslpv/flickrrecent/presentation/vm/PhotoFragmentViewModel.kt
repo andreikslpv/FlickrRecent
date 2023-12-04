@@ -1,49 +1,41 @@
 package com.andreikslpv.flickrrecent.presentation.vm
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import com.andreikslpv.flickrrecent.App
-import com.andreikslpv.flickrrecent.domain.models.ApiResult
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
-import com.andreikslpv.flickrrecent.domain.usecase.GetNotificationStatusUseCase
+import com.andreikslpv.flickrrecent.domain.models.Response
 import com.andreikslpv.flickrrecent.domain.usecase.GetPhotoStatusUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.GetRecentPhotoUseCase
-import com.andreikslpv.flickrrecent.domain.usecase.RefreshRecentPhotoUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.notification.SetIsNeedToUpdatePhotoUseCase
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 class PhotoFragmentViewModel : ViewModel() {
 
-    val photoStateFlow: StateFlow<ApiResult<PhotoDomainModel>> by lazy {
-        getRecentPhotoUseCase.execute().asStateFlow()
-    }
-    val photoStatusFlow: StateFlow<Boolean> by lazy {
-        getPhotoStatusUseCase.execute().asStateFlow()
-    }
-    val notificationStatusFlow: StateFlow<Boolean> by lazy {
-        getNotificationStatusUseCase.execute().asStateFlow()
-    }
+    val currentPhoto: LiveData<Response<PhotoDomainModel>>
 
     @Inject
     lateinit var getRecentPhotoUseCase: GetRecentPhotoUseCase
 
     @Inject
-    lateinit var refreshRecentPhotoUseCase: RefreshRecentPhotoUseCase
+    lateinit var setIsNeedToUpdatePhotoUseCase: SetIsNeedToUpdatePhotoUseCase
+
+
+    val photoStatusFlow: StateFlow<Boolean> by lazy {
+        getPhotoStatusUseCase.execute().asStateFlow()
+    }
 
     @Inject
     lateinit var getPhotoStatusUseCase: GetPhotoStatusUseCase
 
-    @Inject
-    lateinit var getNotificationStatusUseCase: GetNotificationStatusUseCase
-
     init {
         App.instance.dagger.inject(this)
-        refresh()
+        currentPhoto = getRecentPhotoUseCase().asLiveData()
     }
 
-    fun refresh() {
-        refreshRecentPhotoUseCase.execute()
-    }
-
+    fun refresh() = setIsNeedToUpdatePhotoUseCase()
 
 }

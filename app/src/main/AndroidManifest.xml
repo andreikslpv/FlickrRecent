@@ -31,8 +31,7 @@
         <receiver
             android:name=".presentation.ui.utils.AlarmReceiver"
             android:enabled="true"
-            android:exported="false">
-        </receiver>
+            android:exported="false" />
     </application>
 
 </manifest>

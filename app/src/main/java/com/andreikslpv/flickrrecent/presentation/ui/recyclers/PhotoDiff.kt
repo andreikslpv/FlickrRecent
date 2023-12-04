@@ -3,7 +3,10 @@ package com.andreikslpv.flickrrecent.presentation.ui.recyclers
 import androidx.recyclerview.widget.DiffUtil
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
 
-class PhotoDiff(private val oldList: List<PhotoDomainModel>, private val newList: List<PhotoDomainModel>): DiffUtil.Callback() {
+class PhotoDiff(
+    private val oldList: List<PhotoDomainModel>,
+    private val newList: List<PhotoDomainModel>
+) : DiffUtil.Callback() {
     override fun getOldListSize(): Int {
         return oldList.size
     }

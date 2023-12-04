@@ -4,6 +4,7 @@ import android.content.Context
 import com.andreikslpv.flickrrecent.presentation.ui.MainActivity
 import com.andreikslpv.flickrrecent.presentation.ui.fragments.GalleryFragment
 import com.andreikslpv.flickrrecent.presentation.ui.fragments.PhotoFragment
+import com.andreikslpv.flickrrecent.presentation.ui.utils.AlarmReceiver
 import com.andreikslpv.flickrrecent.presentation.vm.GalleryFragmentViewModel
 import com.andreikslpv.flickrrecent.presentation.vm.MainActivityViewModel
 import com.andreikslpv.flickrrecent.presentation.vm.PhotoFragmentViewModel
@@ -26,4 +27,5 @@ interface AppComponent {
     fun inject(photoFragment: PhotoFragment)
     fun inject(galleryFragment: GalleryFragment)
     fun inject(galleryFragmentViewModel: GalleryFragmentViewModel)
+    fun inject(alarmReceiver: AlarmReceiver)
 }

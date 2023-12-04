@@ -1,8 +1,19 @@
 package com.andreikslpv.flickrrecent.di
 
+import com.andreikslpv.flickrrecent.domain.NotificationRepository
 import com.andreikslpv.flickrrecent.domain.PhotosRepository
 import com.andreikslpv.flickrrecent.domain.SettingsRepository
-import com.andreikslpv.flickrrecent.domain.usecase.*
+import com.andreikslpv.flickrrecent.domain.usecase.ChangePhotoStatusUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.GetFavoritesUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.GetPhotoStatusUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.GetRecentPhotoUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.InitApplicationSettingsUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.InverseBooleanSettingValueUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.LoadPhotoFromCacheUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.RemovePhotoFromFavoritesUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.notification.GetNotificationStatusUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.notification.SetActivityRunningStatusUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.notification.SetIsNeedToUpdatePhotoUseCase
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -30,20 +41,11 @@ class DomainModule {
 
     @Provides
     @Singleton
-    fun provideGetNotificationStatusUseCase(photosRepository: PhotosRepository): GetNotificationStatusUseCase {
-        return GetNotificationStatusUseCase(photosRepository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetRecentPhotoUseCase(photosRepository: PhotosRepository): GetRecentPhotoUseCase {
-        return GetRecentPhotoUseCase(photosRepository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideRefreshRecentPhotoUseCase(photosRepository: PhotosRepository): RefreshRecentPhotoUseCase {
-        return RefreshRecentPhotoUseCase(photosRepository)
+    fun provideGetRecentPhotoUseCase(
+        photosRepository: PhotosRepository,
+        notificationRepository: NotificationRepository,
+    ): GetRecentPhotoUseCase {
+        return GetRecentPhotoUseCase(photosRepository, notificationRepository)
     }
 
     @Provides
@@ -75,4 +77,28 @@ class DomainModule {
     fun provideLoadPhotoFromCacheUseCase(photosRepository: PhotosRepository): LoadPhotoFromCacheUseCase {
         return LoadPhotoFromCacheUseCase(photosRepository)
     }
+
+    // for notifications
+
+    @Provides
+    @Singleton
+    fun provideSetActivityStatusUseCase(notificationRepository: NotificationRepository): SetActivityRunningStatusUseCase {
+        return SetActivityRunningStatusUseCase(notificationRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetNotificationStatusUseCase(
+        notificationRepository: NotificationRepository,
+        settingsRepository: SettingsRepository,
+    ): GetNotificationStatusUseCase {
+        return GetNotificationStatusUseCase(notificationRepository, settingsRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSetIsNeedToUpdatePhotoUseCase(notificationRepository: NotificationRepository): SetIsNeedToUpdatePhotoUseCase {
+        return SetIsNeedToUpdatePhotoUseCase(notificationRepository)
+    }
+
 }
