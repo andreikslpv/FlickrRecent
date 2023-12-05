@@ -7,37 +7,18 @@ import com.andreikslpv.flickrrecent.domain.usecase.ChangePhotoStatusUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.GetFavoritesUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.GetPhotoStatusUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.GetRecentPhotoUseCase
-import com.andreikslpv.flickrrecent.domain.usecase.InitApplicationSettingsUseCase
-import com.andreikslpv.flickrrecent.domain.usecase.InverseBooleanSettingValueUseCase
-import com.andreikslpv.flickrrecent.domain.usecase.LoadPhotoFromCacheUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.RemovePhotoFromFavoritesUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.notification.GetNotificationStatusUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.notification.SetActivityRunningStatusUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.notification.SetIsNeedToUpdatePhotoUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.settings.InverseNotificationSettingUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.settings.ObserveNotificationSettingsUseCase
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
 
 @Module
 class DomainModule {
-
-    @Provides
-    @Singleton
-    fun provideInitApplicationSettingsUseCase(
-        settingsRepository: SettingsRepository,
-        photosRepository: PhotosRepository
-    ): InitApplicationSettingsUseCase {
-        return InitApplicationSettingsUseCase(settingsRepository, photosRepository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideInverseBooleanSettingValueUseCase(
-        settingsRepository: SettingsRepository,
-        photosRepository: PhotosRepository
-    ): InverseBooleanSettingValueUseCase {
-        return InverseBooleanSettingValueUseCase(settingsRepository, photosRepository)
-    }
 
     @Provides
     @Singleton
@@ -72,10 +53,22 @@ class DomainModule {
         return GetFavoritesUseCase(photosRepository)
     }
 
+    // for settings
+
     @Provides
     @Singleton
-    fun provideLoadPhotoFromCacheUseCase(photosRepository: PhotosRepository): LoadPhotoFromCacheUseCase {
-        return LoadPhotoFromCacheUseCase(photosRepository)
+    fun provideInverseNotificationSettingUseCase(
+        settingsRepository: SettingsRepository,
+    ): InverseNotificationSettingUseCase {
+        return InverseNotificationSettingUseCase(settingsRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideObserveNotificationSettingsUseCase(
+        settingsRepository: SettingsRepository,
+    ): ObserveNotificationSettingsUseCase {
+        return ObserveNotificationSettingsUseCase(settingsRepository)
     }
 
     // for notifications

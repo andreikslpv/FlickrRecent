@@ -7,7 +7,7 @@ import com.andreikslpv.flickrrecent.presentation.ui.fragments.PhotoFragment
 import com.andreikslpv.flickrrecent.presentation.ui.utils.AlarmReceiver
 import com.andreikslpv.flickrrecent.presentation.vm.GalleryFragmentViewModel
 import com.andreikslpv.flickrrecent.presentation.vm.MainActivityViewModel
-import com.andreikslpv.flickrrecent.presentation.vm.PhotoFragmentViewModel
+import com.andreikslpv.flickrrecent.presentation.vm.PhotoViewModel
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
@@ -23,7 +23,7 @@ interface AppComponent {
 
     fun inject(mainActivity: MainActivity)
     fun inject(mainActivityViewModel: MainActivityViewModel)
-    fun inject(photoFragmentViewModel: PhotoFragmentViewModel)
+    fun inject(photoViewModel: PhotoViewModel)
     fun inject(photoFragment: PhotoFragment)
     fun inject(galleryFragment: GalleryFragment)
     fun inject(galleryFragmentViewModel: GalleryFragmentViewModel)

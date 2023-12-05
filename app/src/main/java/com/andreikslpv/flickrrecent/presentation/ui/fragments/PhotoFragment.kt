@@ -14,12 +14,9 @@ import com.andreikslpv.flickrrecent.App
 import com.andreikslpv.flickrrecent.R
 import com.andreikslpv.flickrrecent.databinding.FragmentPhotoBinding
 import com.andreikslpv.flickrrecent.domain.models.Response
-import com.andreikslpv.flickrrecent.domain.models.SettingsBooleanType
 import com.andreikslpv.flickrrecent.domain.usecase.ChangePhotoStatusUseCase
-import com.andreikslpv.flickrrecent.domain.usecase.InverseBooleanSettingValueUseCase
-import com.andreikslpv.flickrrecent.domain.usecase.LoadPhotoFromCacheUseCase
 import com.andreikslpv.flickrrecent.presentation.ui.utils.makeToast
-import com.andreikslpv.flickrrecent.presentation.vm.PhotoFragmentViewModel
+import com.andreikslpv.flickrrecent.presentation.vm.PhotoViewModel
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,13 +29,8 @@ class PhotoFragment : Fragment() {
     @Inject
     lateinit var changePhotoStatusUseCase: ChangePhotoStatusUseCase
 
-    @Inject
-    lateinit var loadPhotoFromCacheUseCase: LoadPhotoFromCacheUseCase
 
-    @Inject
-    lateinit var inverseBooleanSettingValueUseCase: InverseBooleanSettingValueUseCase
-
-    private val viewModel: PhotoFragmentViewModel by viewModels()
+    private val viewModel: PhotoViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +50,8 @@ class PhotoFragment : Fragment() {
 
         observeCurrentPhoto()
         setupSwipeToRefresh()
+        observeNotificationSetting()
+
 
         setCollectors()
         initButtons()
@@ -98,6 +92,19 @@ class PhotoFragment : Fragment() {
         }
     }
 
+    private fun observeNotificationSetting() {
+        viewModel.notificationSetting.observe(viewLifecycleOwner) {
+            setNotificationIcon(it)
+        }
+    }
+
+    private fun setNotificationIcon(isEnable: Boolean) {
+        binding.photoFabNotification.setImageResource(
+            if (isEnable) R.drawable.ic_baseline_notifications
+            else R.drawable.ic_baseline_notifications_off
+        )
+    }
+
 
 
     private fun setCollectors() {
@@ -110,13 +117,6 @@ class PhotoFragment : Fragment() {
                             setFavoritesIcon(it)
                         }
                 }
-
-//                viewLifecycleOwner.lifecycleScope.launch {
-//                    viewModel.isNeedToUpdate
-//                        .collect {
-//                            setNotificationIcon(it)
-//                        }
-//                }
             }
         }
     }
@@ -129,7 +129,7 @@ class PhotoFragment : Fragment() {
         }
 
         binding.photoFabNotification.setOnClickListener {
-            inverseBooleanSettingValueUseCase.execute(SettingsBooleanType.NOTIFICATION)
+            viewModel.inverseNotificationSetting()
         }
     }
 
@@ -140,11 +140,6 @@ class PhotoFragment : Fragment() {
         )
     }
 
-    private fun setNotificationIcon(isEnable: Boolean) {
-        binding.photoFabNotification.setImageResource(
-            if (isEnable) R.drawable.ic_baseline_notifications
-            else R.drawable.ic_baseline_notifications_off
-        )
-    }
+
 
 }

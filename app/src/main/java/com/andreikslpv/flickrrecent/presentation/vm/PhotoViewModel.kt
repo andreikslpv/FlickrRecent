@@ -8,14 +8,17 @@ import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
 import com.andreikslpv.flickrrecent.domain.models.Response
 import com.andreikslpv.flickrrecent.domain.usecase.GetPhotoStatusUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.GetRecentPhotoUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.settings.InverseNotificationSettingUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.settings.ObserveNotificationSettingsUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.notification.SetIsNeedToUpdatePhotoUseCase
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
-class PhotoFragmentViewModel : ViewModel() {
+class PhotoViewModel : ViewModel() {
 
     val currentPhoto: LiveData<Response<PhotoDomainModel>>
+    val notificationSetting: LiveData<Boolean>
 
     @Inject
     lateinit var getRecentPhotoUseCase: GetRecentPhotoUseCase
@@ -23,6 +26,13 @@ class PhotoFragmentViewModel : ViewModel() {
     @Inject
     lateinit var setIsNeedToUpdatePhotoUseCase: SetIsNeedToUpdatePhotoUseCase
 
+    @Inject
+    lateinit var observeNotificationSettingsUseCase: ObserveNotificationSettingsUseCase
+
+    @Inject
+    lateinit var inverseNotificationSettingUseCase: InverseNotificationSettingUseCase
+
+    // TODO
 
     val photoStatusFlow: StateFlow<Boolean> by lazy {
         getPhotoStatusUseCase.execute().asStateFlow()
@@ -34,8 +44,11 @@ class PhotoFragmentViewModel : ViewModel() {
     init {
         App.instance.dagger.inject(this)
         currentPhoto = getRecentPhotoUseCase().asLiveData()
+        notificationSetting = observeNotificationSettingsUseCase().asLiveData()
     }
 
     fun refresh() = setIsNeedToUpdatePhotoUseCase()
+
+    fun inverseNotificationSetting() = inverseNotificationSettingUseCase()
 
 }

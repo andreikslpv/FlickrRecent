@@ -12,7 +12,6 @@ import com.andreikslpv.flickrrecent.data.db.DomainToRealmMapper
 import com.andreikslpv.flickrrecent.data.db.PhotoRealmModel
 import com.andreikslpv.flickrrecent.data.db.RealmToDomainListMapper
 import com.andreikslpv.flickrrecent.domain.PhotosRepository
-import com.andreikslpv.flickrrecent.domain.models.ApiResult
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
 import com.andreikslpv.flickrrecent.domain.models.Response
 import io.realm.kotlin.Realm
@@ -26,13 +25,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
 import java.util.concurrent.Executors
 import javax.inject.Inject
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -44,18 +41,7 @@ class PhotosRepositoryImpl @Inject constructor(
     private val realmDb: Realm,
     private val context: Context,
 ) : PhotosRepository {
-    private val start: ApiResult<PhotoDomainModel> = ApiResult.Loading(null, true)
-    private val _currentResult = MutableStateFlow(start)
     private val _currentPhotoStatus = MutableStateFlow(false)
-    private val _currentNotificationStatus = MutableStateFlow(false)
-
-    override fun setNotificationStatus(enable: Boolean) {
-        _currentNotificationStatus.tryEmit(enable)
-    }
-
-    override fun getNotificationStatus(): MutableStateFlow<Boolean> {
-        return _currentNotificationStatus
-    }
 
     override fun getRecentPhoto() = flow {
         emit(Response.Loading)
@@ -66,14 +52,15 @@ class PhotosRepositoryImpl @Inject constructor(
                 if (photos.isNullOrEmpty()) {
                     emit(Response.Failure(Throwable("unknown error")))
                 } else {
-                    emit(Response.Success(DtoToDomainMapper.map(photos[0])))
-                    savePhotoToDisk()
-                    savePhotoToCache()
+                    val photo = DtoToDomainMapper.map(photos[0])
+                    emit(Response.Success(photo))
+                    savePhotoToDisk(photo)
+                    savePhotoToCache(photo)
                 }
             } else {
                 val errorMsg = response.errorBody()?.string() ?: ""
                 response.errorBody()?.close()
-                _currentResult.tryEmit(ApiResult.Error(errorMsg))
+                emit(Response.Failure(Throwable(errorMsg)))
             }
         } catch (e: Exception) {
             emit(Response.Failure(e))
@@ -124,27 +111,18 @@ class PhotosRepositoryImpl @Inject constructor(
             }
     }
 
-    override suspend fun savePhotoToCache() {
+    private suspend fun savePhotoToCache(photo: PhotoDomainModel) {
         realmDb.write {
-            val cachedPhoto = DomainToCacheMapper.map(_currentResult.value.data)
+            val cachedPhoto = DomainToCacheMapper.map(photo)
             copyToRealm(cachedPhoto, UpdatePolicy.ALL)
         }
     }
 
-    override suspend fun savePhotoToDisk() {
+    private suspend fun savePhotoToDisk(photo: PhotoDomainModel) {
         val job = CoroutineScope(Dispatchers.IO).async {
-            _currentResult.value.data?.let { loadImage(it.linkBigPhoto) }
+            loadImage(photo.linkBigPhoto)
         }
-        job.await()?.let { convertBitmapToFile(it) }
-    }
-
-    override fun loadPhotoFromCache() {
-        val photo =
-            realmDb.query<PhotoCacheModel>("id = $0", "1").find().firstOrNull() ?: return
-        CoroutineScope(EmptyCoroutineContext).launch {
-            _currentResult.tryEmit(ApiResult.Loading(null, true))
-            _currentResult.tryEmit(ApiResult.Cache(CacheToDomainMapper.map(photo)))
-        }
+        convertBitmapToFile(job.await())
     }
 
     private suspend fun loadImage(url: String): Bitmap {

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.andreikslpv.flickrrecent.domain.SettingsRepository
 import com.andreikslpv.flickrrecent.domain.models.SettingsBooleanType
+import com.andreikslpv.flickrrecent.presentation.ui.utils.observeKey
 import javax.inject.Inject
 
 class SettingsRepositoryImpl @Inject constructor(context: Context) : SettingsRepository {
@@ -30,6 +31,11 @@ class SettingsRepositoryImpl @Inject constructor(context: Context) : SettingsRep
     override fun getSettingBooleanValue(setting: SettingsBooleanType): Boolean {
         return preference.getBoolean(setting.key, setting.defaultValue)
     }
+
+    override fun getSettingBooleanValueFlow(setting: SettingsBooleanType) = preference.observeKey(
+        setting.key,
+        setting.defaultValue
+    )
 
     override fun setSettingBooleanValue(setting: SettingsBooleanType, value: Boolean) {
         preference.edit().putBoolean(setting.key, value).apply()

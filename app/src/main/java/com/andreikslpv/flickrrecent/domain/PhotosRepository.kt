@@ -7,10 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 interface PhotosRepository {
 
-    fun setNotificationStatus(enable: Boolean)
-
-    fun getNotificationStatus(): MutableStateFlow<Boolean>
-
     fun getRecentPhoto(): Flow<Response<PhotoDomainModel>>
 
     fun getPhotoFromCache(): Flow<Response<PhotoDomainModel>>
@@ -24,11 +20,5 @@ interface PhotosRepository {
     fun isPhotoFavorites(photoId: String): Boolean
 
     fun getFavorites(): Flow<List<PhotoDomainModel>>
-
-    suspend fun savePhotoToCache()
-
-    suspend fun savePhotoToDisk()
-
-    fun loadPhotoFromCache()
 
 }
