@@ -1,9 +1,9 @@
-package com.andreikslpv.flickrrecent.domain.usecase
+package com.andreikslpv.flickrrecent.domain.usecase.favorites
 
 import com.andreikslpv.flickrrecent.domain.PhotosRepository
 
 class RemovePhotoFromFavoritesUseCase(private val photosRepository: PhotosRepository) {
-    suspend fun execute(photoId: String) {
+
+    suspend operator fun invoke(photoId: String) =
         photosRepository.removePhotoFromFavorites(photoId)
-    }
 }

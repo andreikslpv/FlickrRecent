@@ -7,20 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.andreikslpv.flickrrecent.App
 import com.andreikslpv.flickrrecent.databinding.FragmentGalleryBinding
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
-import com.andreikslpv.flickrrecent.domain.usecase.RemovePhotoFromFavoritesUseCase
 import com.andreikslpv.flickrrecent.presentation.ui.recyclers.PhotoOnItemClickListener
 import com.andreikslpv.flickrrecent.presentation.ui.recyclers.PhotoRecyclerAdapter
-import com.andreikslpv.flickrrecent.presentation.vm.GalleryFragmentViewModel
+import com.andreikslpv.flickrrecent.presentation.vm.GalleryViewModel
 import com.bumptech.glide.Glide
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 class GalleryFragment : Fragment() {
     private var _binding: FragmentGalleryBinding? = null
@@ -29,15 +22,7 @@ class GalleryFragment : Fragment() {
 
     private lateinit var photosAdapter: PhotoRecyclerAdapter
 
-    @Inject
-    lateinit var removePhotoFromFavoritesUseCase: RemovePhotoFromFavoritesUseCase
-
-    private val viewModel: GalleryFragmentViewModel by viewModels()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        App.instance.dagger.inject(this)
-    }
+    private val viewModel: GalleryViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,29 +36,31 @@ class GalleryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initPhotoListRecycler()
-        setCollectors()
+        observeFavoritesList()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     private fun initPhotoListRecycler() {
         binding.galleryRecycler.apply {
-            photosAdapter =
-                PhotoRecyclerAdapter(
-                    object : PhotoOnItemClickListener {
-                        override fun click(photo: PhotoDomainModel) {
-                            Glide.with(this@GalleryFragment)
-                                .load(photo.linkBigPhoto)
-                                .centerCrop()
-                                .into(binding.galleryImage)
-                        }
-                    },
-                    object : PhotoOnItemClickListener {
-                        override fun click(photo: PhotoDomainModel) {
-                            viewLifecycleOwner.lifecycleScope.launch {
-                                removePhotoFromFavoritesUseCase.execute(photo.id)
-                            }
-                        }
+            photosAdapter = PhotoRecyclerAdapter(
+                object : PhotoOnItemClickListener {
+                    override fun click(photo: PhotoDomainModel) {
+                        Glide.with(this@GalleryFragment)
+                            .load(photo.linkBigPhoto)
+                            .centerCrop()
+                            .into(binding.galleryImage)
                     }
-                )
+                },
+                object : PhotoOnItemClickListener {
+                    override fun click(photo: PhotoDomainModel) {
+                        viewModel.removePhotoFromFavorites(photo)
+                    }
+                }
+            )
             adapter = photosAdapter
             layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -81,23 +68,11 @@ class GalleryFragment : Fragment() {
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private fun setCollectors() {
-        this.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-
-                viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.photoStateFlow
-                        .collect {
-                            photosAdapter.changeItems(it)
-                            photosAdapter.notifyDataSetChanged()
-                        }
-                }
-            }
+    private fun observeFavoritesList() {
+        viewModel.favorites.observe(viewLifecycleOwner) {
+            photosAdapter.changeItems(it)
+            photosAdapter.notifyDataSetChanged()
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
-    }
 }

@@ -1,12 +1,9 @@
 package com.andreikslpv.flickrrecent.di
 
 import android.content.Context
-import com.andreikslpv.flickrrecent.presentation.ui.MainActivity
-import com.andreikslpv.flickrrecent.presentation.ui.fragments.GalleryFragment
-import com.andreikslpv.flickrrecent.presentation.ui.fragments.PhotoFragment
 import com.andreikslpv.flickrrecent.presentation.ui.utils.AlarmReceiver
-import com.andreikslpv.flickrrecent.presentation.vm.GalleryFragmentViewModel
-import com.andreikslpv.flickrrecent.presentation.vm.MainActivityViewModel
+import com.andreikslpv.flickrrecent.presentation.vm.GalleryViewModel
+import com.andreikslpv.flickrrecent.presentation.vm.MainViewModel
 import com.andreikslpv.flickrrecent.presentation.vm.PhotoViewModel
 import dagger.BindsInstance
 import dagger.Component
@@ -21,11 +18,8 @@ interface AppComponent {
         fun create(@BindsInstance context: Context): AppComponent
     }
 
-    fun inject(mainActivity: MainActivity)
-    fun inject(mainActivityViewModel: MainActivityViewModel)
+    fun inject(mainViewModel: MainViewModel)
     fun inject(photoViewModel: PhotoViewModel)
-    fun inject(photoFragment: PhotoFragment)
-    fun inject(galleryFragment: GalleryFragment)
-    fun inject(galleryFragmentViewModel: GalleryFragmentViewModel)
+    fun inject(galleryViewModel: GalleryViewModel)
     fun inject(alarmReceiver: AlarmReceiver)
 }

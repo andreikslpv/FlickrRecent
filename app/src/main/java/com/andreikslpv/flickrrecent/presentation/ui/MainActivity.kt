@@ -11,7 +11,6 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.Fragment
-import com.andreikslpv.flickrrecent.App
 import com.andreikslpv.flickrrecent.R
 import com.andreikslpv.flickrrecent.databinding.ActivityMainBinding
 import com.andreikslpv.flickrrecent.presentation.ui.fragments.GalleryFragment
@@ -21,12 +20,12 @@ import com.andreikslpv.flickrrecent.presentation.ui.utils.CHANNEL_ID
 import com.andreikslpv.flickrrecent.presentation.ui.utils.FragmentsType
 import com.andreikslpv.flickrrecent.presentation.ui.utils.NOTIFICATION_TITLE
 import com.andreikslpv.flickrrecent.presentation.ui.utils.makeToast
-import com.andreikslpv.flickrrecent.presentation.vm.MainActivityViewModel
+import com.andreikslpv.flickrrecent.presentation.vm.MainViewModel
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val viewModel: MainActivityViewModel by viewModels()
+    private val viewModel: MainViewModel by viewModels()
 
     private val singlePermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -48,11 +47,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
-
-    init {
-        App.instance.dagger.inject(this)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()

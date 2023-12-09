@@ -3,11 +3,10 @@ package com.andreikslpv.flickrrecent.di
 import com.andreikslpv.flickrrecent.domain.NotificationRepository
 import com.andreikslpv.flickrrecent.domain.PhotosRepository
 import com.andreikslpv.flickrrecent.domain.SettingsRepository
-import com.andreikslpv.flickrrecent.domain.usecase.ChangePhotoStatusUseCase
-import com.andreikslpv.flickrrecent.domain.usecase.GetFavoritesUseCase
-import com.andreikslpv.flickrrecent.domain.usecase.GetPhotoStatusUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.favorites.ChangePhotoStatusUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.favorites.GetFavoritesUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.GetRecentPhotoUseCase
-import com.andreikslpv.flickrrecent.domain.usecase.RemovePhotoFromFavoritesUseCase
+import com.andreikslpv.flickrrecent.domain.usecase.favorites.RemovePhotoFromFavoritesUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.notification.GetNotificationStatusUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.notification.SetActivityRunningStatusUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.notification.SetIsNeedToUpdatePhotoUseCase
@@ -29,6 +28,8 @@ class DomainModule {
         return GetRecentPhotoUseCase(photosRepository, notificationRepository)
     }
 
+    // for favorites
+
     @Provides
     @Singleton
     fun provideRemovePhotoFromFavoritesUseCase(photosRepository: PhotosRepository): RemovePhotoFromFavoritesUseCase {
@@ -39,12 +40,6 @@ class DomainModule {
     @Singleton
     fun provideChangePhotoStatusUseCase(photosRepository: PhotosRepository): ChangePhotoStatusUseCase {
         return ChangePhotoStatusUseCase(photosRepository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetPhotoStatusUseCase(photosRepository: PhotosRepository): GetPhotoStatusUseCase {
-        return GetPhotoStatusUseCase(photosRepository)
     }
 
     @Provides

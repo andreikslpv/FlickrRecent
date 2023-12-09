@@ -17,12 +17,9 @@ import com.andreikslpv.flickrrecent.domain.models.Response
 import io.realm.kotlin.Realm
 import io.realm.kotlin.UpdatePolicy
 import io.realm.kotlin.ext.query
-import io.realm.kotlin.query.RealmResults
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.io.File
@@ -41,7 +38,6 @@ class PhotosRepositoryImpl @Inject constructor(
     private val realmDb: Realm,
     private val context: Context,
 ) : PhotosRepository {
-    private val _currentPhotoStatus = MutableStateFlow(false)
 
     override fun getRecentPhoto() = flow {
         emit(Response.Loading)
@@ -82,7 +78,6 @@ class PhotosRepositoryImpl @Inject constructor(
         realmDb.write {
             copyToRealm(DomainToRealmMapper.map(photo))
         }
-        _currentPhotoStatus.tryEmit(true)
     }
 
     override suspend fun removePhotoFromFavorites(photoId: String) {
@@ -90,26 +85,16 @@ class PhotosRepositoryImpl @Inject constructor(
             val query = this.query<PhotoRealmModel>("id = $0", photoId)
             delete(query)
         }
-        _currentPhotoStatus.tryEmit(false)
     }
 
-    override fun getPhotoStatus(): MutableStateFlow<Boolean> {
-        return _currentPhotoStatus
-    }
+    override fun getFavoritesIds() = realmDb.query<PhotoRealmModel>()
+        .find()
+        .toList()
+        .map { it.id }
 
-    override fun isPhotoFavorites(photoId: String): Boolean {
-        val photo: RealmResults<PhotoRealmModel> =
-            realmDb.query<PhotoRealmModel>("id = $0", photoId).find()
-        return !photo.isEmpty()
-    }
-
-    override fun getFavorites(): Flow<List<PhotoDomainModel>> {
-        return realmDb.query<PhotoRealmModel>()
-            .asFlow()
-            .map {
-                RealmToDomainListMapper.map(it.list)
-            }
-    }
+    override fun getFavoritesFlow() = realmDb.query<PhotoRealmModel>()
+        .asFlow()
+        .map { RealmToDomainListMapper.map(it.list) }
 
     private suspend fun savePhotoToCache(photo: PhotoDomainModel) {
         realmDb.write {

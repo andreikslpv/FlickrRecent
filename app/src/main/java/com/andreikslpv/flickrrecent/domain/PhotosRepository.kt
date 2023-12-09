@@ -3,7 +3,6 @@ package com.andreikslpv.flickrrecent.domain
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
 import com.andreikslpv.flickrrecent.domain.models.Response
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 
 interface PhotosRepository {
 
@@ -15,10 +14,8 @@ interface PhotosRepository {
 
     suspend fun removePhotoFromFavorites(photoId: String)
 
-    fun getPhotoStatus(): MutableStateFlow<Boolean>
+    fun getFavoritesIds(): List<String>
 
-    fun isPhotoFavorites(photoId: String): Boolean
-
-    fun getFavorites(): Flow<List<PhotoDomainModel>>
+    fun getFavoritesFlow(): Flow<List<PhotoDomainModel>>
 
 }

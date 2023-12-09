@@ -7,35 +7,19 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import com.andreikslpv.flickrrecent.App
 import com.andreikslpv.flickrrecent.R
 import com.andreikslpv.flickrrecent.databinding.FragmentPhotoBinding
 import com.andreikslpv.flickrrecent.domain.models.Response
-import com.andreikslpv.flickrrecent.domain.usecase.ChangePhotoStatusUseCase
 import com.andreikslpv.flickrrecent.presentation.ui.utils.makeToast
 import com.andreikslpv.flickrrecent.presentation.vm.PhotoViewModel
 import com.bumptech.glide.Glide
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 class PhotoFragment : Fragment() {
     private var _binding: FragmentPhotoBinding? = null
     private val binding
         get() = _binding!!
 
-    @Inject
-    lateinit var changePhotoStatusUseCase: ChangePhotoStatusUseCase
-
-
     private val viewModel: PhotoViewModel by viewModels()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        App.instance.dagger.inject(this)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,9 +35,6 @@ class PhotoFragment : Fragment() {
         observeCurrentPhoto()
         setupSwipeToRefresh()
         observeNotificationSetting()
-
-
-        setCollectors()
         initButtons()
     }
 
@@ -74,6 +55,10 @@ class PhotoFragment : Fragment() {
                         .load(response.data.linkBigPhoto)
                         .fitCenter()
                         .into(binding.photoImage)
+                    binding.photoFabFavorites.setImageResource(
+                        if (response.data.isFavorite) R.drawable.ic_baseline_favorite
+                        else R.drawable.ic_baseline_favorite_border
+                    )
                     binding.photoProgressBar.isVisible = false
                 }
 
@@ -94,52 +79,21 @@ class PhotoFragment : Fragment() {
 
     private fun observeNotificationSetting() {
         viewModel.notificationSetting.observe(viewLifecycleOwner) {
-            setNotificationIcon(it)
-        }
-    }
-
-    private fun setNotificationIcon(isEnable: Boolean) {
-        binding.photoFabNotification.setImageResource(
-            if (isEnable) R.drawable.ic_baseline_notifications
-            else R.drawable.ic_baseline_notifications_off
-        )
-    }
-
-
-
-    private fun setCollectors() {
-        this.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-
-                viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.photoStatusFlow
-                        .collect {
-                            setFavoritesIcon(it)
-                        }
-                }
-            }
+            binding.photoFabNotification.setImageResource(
+                if (it) R.drawable.ic_baseline_notifications
+                else R.drawable.ic_baseline_notifications_off
+            )
         }
     }
 
     private fun initButtons() {
         binding.photoFabFavorites.setOnClickListener {
-//            viewModel.currentPhoto.value.data?.let { photo ->
-//                changePhotoStatusUseCase.execute(photo)
-//            }
+            viewModel.changePhotoStatus()
         }
 
         binding.photoFabNotification.setOnClickListener {
             viewModel.inverseNotificationSetting()
         }
     }
-
-    private fun setFavoritesIcon(isEnable: Boolean) {
-        binding.photoFabFavorites.setImageResource(
-            if (isEnable) R.drawable.ic_baseline_favorite
-            else R.drawable.ic_baseline_favorite_border
-        )
-    }
-
-
 
 }

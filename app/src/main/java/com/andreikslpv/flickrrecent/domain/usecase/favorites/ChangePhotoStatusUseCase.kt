@@ -1,4 +1,4 @@
-package com.andreikslpv.flickrrecent.domain.usecase
+package com.andreikslpv.flickrrecent.domain.usecase.favorites
 
 import com.andreikslpv.flickrrecent.domain.PhotosRepository
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
@@ -7,9 +7,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class ChangePhotoStatusUseCase(private val photosRepository: PhotosRepository) {
-    fun execute(photo: PhotoDomainModel) {
+
+    operator fun invoke(photo: PhotoDomainModel) {
         CoroutineScope(Dispatchers.IO).launch {
-            if (photosRepository.isPhotoFavorites(photo.id))
+            if (photosRepository.getFavoritesIds().contains(photo.id))
                 photosRepository.removePhotoFromFavorites(photo.id)
             else photosRepository.addPhotoInFavorites(photo)
         }
