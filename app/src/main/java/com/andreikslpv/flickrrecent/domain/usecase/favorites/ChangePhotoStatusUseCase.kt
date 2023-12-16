@@ -5,8 +5,9 @@ import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ChangePhotoStatusUseCase(private val photosRepository: PhotosRepository) {
+class ChangePhotoStatusUseCase @Inject constructor(private val photosRepository: PhotosRepository) {
 
     operator fun invoke(photo: PhotoDomainModel) {
         CoroutineScope(Dispatchers.IO).launch {

@@ -5,20 +5,16 @@ import com.andreikslpv.flickrrecent.di.AppComponent
 import com.andreikslpv.flickrrecent.di.DaggerAppComponent
 
 class App : Application() {
-    lateinit var dagger: AppComponent
 
-    override fun onCreate() {
-        super.onCreate()
-
-        //Инициализируем экземпляр App, через который будем получать доступ к остальным переменным
-        instance = this
-        dagger = DaggerAppComponent.factory().create(this)
+    // Instance of the AppComponent that will be used by all the Activities in the project
+    val appComponent: AppComponent by lazy {
+        initializeComponent()
     }
 
-    companion object {
-        //Здесь статически хранится ссылка на экземпляр App
-        lateinit var instance: App
-            private set
+    private fun initializeComponent(): AppComponent {
+        // Creates an instance of AppComponent using its Factory constructor
+        // We pass the applicationContext that will be used as Context in the graph
+        return DaggerAppComponent.factory().create(applicationContext)
     }
 
 }

@@ -1,25 +1,35 @@
 package com.andreikslpv.flickrrecent.presentation.ui.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import com.andreikslpv.flickrrecent.App
 import com.andreikslpv.flickrrecent.R
 import com.andreikslpv.flickrrecent.databinding.FragmentPhotoBinding
 import com.andreikslpv.flickrrecent.domain.models.Response
 import com.andreikslpv.flickrrecent.presentation.ui.utils.makeToast
+import com.andreikslpv.flickrrecent.presentation.ui.utils.viewModelCreator
 import com.andreikslpv.flickrrecent.presentation.vm.PhotoViewModel
 import com.bumptech.glide.Glide
+import javax.inject.Inject
 
 class PhotoFragment : Fragment() {
     private var _binding: FragmentPhotoBinding? = null
     private val binding
         get() = _binding!!
 
-    private val viewModel: PhotoViewModel by viewModels()
+    @Inject
+    lateinit var factory: PhotoViewModel.Factory
+    private val viewModel by viewModelCreator { factory.create() }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (context.applicationContext as App).appComponent.inject(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

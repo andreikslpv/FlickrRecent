@@ -4,8 +4,9 @@ import com.andreikslpv.flickrrecent.domain.NotificationRepository
 import com.andreikslpv.flickrrecent.domain.SettingsRepository
 import com.andreikslpv.flickrrecent.domain.models.NotificationStatus
 import com.andreikslpv.flickrrecent.domain.models.SettingsBooleanType
+import javax.inject.Inject
 
-class GetNotificationStatusUseCase(
+class GetNotificationStatusUseCase @Inject constructor(
     private val notificationRepository: NotificationRepository,
     private val settingsRepository: SettingsRepository,
 ) {

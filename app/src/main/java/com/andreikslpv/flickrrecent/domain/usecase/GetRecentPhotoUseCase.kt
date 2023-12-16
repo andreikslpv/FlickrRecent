@@ -5,8 +5,9 @@ import com.andreikslpv.flickrrecent.domain.PhotosRepository
 import com.andreikslpv.flickrrecent.domain.models.Response
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
+import javax.inject.Inject
 
-class GetRecentPhotoUseCase(
+class GetRecentPhotoUseCase @Inject constructor(
     private val photosRepository: PhotosRepository,
     private val notificationRepository: NotificationRepository,
 ) {

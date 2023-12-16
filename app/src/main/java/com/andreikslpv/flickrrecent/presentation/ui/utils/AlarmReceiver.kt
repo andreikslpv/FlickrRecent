@@ -21,11 +21,8 @@ class AlarmReceiver : BroadcastReceiver() {
     @Inject
     lateinit var setIsNeedToUpdatePhotoUseCase: SetIsNeedToUpdatePhotoUseCase
 
-    init {
-        App.instance.dagger.inject(this)
-    }
-
     override fun onReceive(context: Context, intent: Intent) {
+        (context.applicationContext as App).appComponent.inject(this)
 
         when (getNotificationStatusUseCase()) {
             NotificationStatus.NOTIFICATION_ENABLED_AND_SHOWING -> {

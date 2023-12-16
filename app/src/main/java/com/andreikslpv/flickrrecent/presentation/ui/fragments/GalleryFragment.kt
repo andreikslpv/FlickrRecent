@@ -1,19 +1,22 @@
 package com.andreikslpv.flickrrecent.presentation.ui.fragments
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.andreikslpv.flickrrecent.App
 import com.andreikslpv.flickrrecent.databinding.FragmentGalleryBinding
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
 import com.andreikslpv.flickrrecent.presentation.ui.recyclers.PhotoOnItemClickListener
 import com.andreikslpv.flickrrecent.presentation.ui.recyclers.PhotoRecyclerAdapter
+import com.andreikslpv.flickrrecent.presentation.ui.utils.viewModelCreator
 import com.andreikslpv.flickrrecent.presentation.vm.GalleryViewModel
 import com.bumptech.glide.Glide
+import javax.inject.Inject
 
 class GalleryFragment : Fragment() {
     private var _binding: FragmentGalleryBinding? = null
@@ -22,7 +25,14 @@ class GalleryFragment : Fragment() {
 
     private lateinit var photosAdapter: PhotoRecyclerAdapter
 
-    private val viewModel: GalleryViewModel by viewModels()
+    @Inject
+    lateinit var factory: GalleryViewModel.Factory
+    private val viewModel by viewModelCreator { factory.create() }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (context.applicationContext as App).appComponent.inject(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

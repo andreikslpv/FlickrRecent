@@ -1,16 +1,16 @@
 package com.andreikslpv.flickrrecent.di
 
 import android.content.Context
+import com.andreikslpv.flickrrecent.presentation.ui.MainActivity
+import com.andreikslpv.flickrrecent.presentation.ui.fragments.GalleryFragment
+import com.andreikslpv.flickrrecent.presentation.ui.fragments.PhotoFragment
 import com.andreikslpv.flickrrecent.presentation.ui.utils.AlarmReceiver
-import com.andreikslpv.flickrrecent.presentation.vm.GalleryViewModel
-import com.andreikslpv.flickrrecent.presentation.vm.MainViewModel
-import com.andreikslpv.flickrrecent.presentation.vm.PhotoViewModel
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
 
 @Singleton
-@Component(modules = [DomainModule::class, DataModule::class, RemoteModule::class, DatabaseModule::class])
+@Component(modules = [DataModule::class, RemoteModule::class, DatabaseModule::class])
 interface AppComponent {
 
     @Component.Factory
@@ -18,8 +18,8 @@ interface AppComponent {
         fun create(@BindsInstance context: Context): AppComponent
     }
 
-    fun inject(mainViewModel: MainViewModel)
-    fun inject(photoViewModel: PhotoViewModel)
-    fun inject(galleryViewModel: GalleryViewModel)
+    fun inject(mainActivity: MainActivity)
+    fun inject(photoFragment: PhotoFragment)
+    fun inject(galleryFragment: GalleryFragment)
     fun inject(alarmReceiver: AlarmReceiver)
 }

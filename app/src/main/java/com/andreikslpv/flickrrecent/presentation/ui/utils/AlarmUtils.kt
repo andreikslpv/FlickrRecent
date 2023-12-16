@@ -44,7 +44,5 @@ object AlarmUtils {
             triggerTime,
             notifyPendingIntent
         )
-
-        println("AAAA createAlarmEvent")
     }
 }
