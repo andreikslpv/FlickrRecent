@@ -21,4 +21,6 @@
 
     <dimen name="margin_of_elements">8dp</dimen>
 
+    <dimen name="splash_image_dimen">150dp</dimen>
+
 </resources>
