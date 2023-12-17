@@ -13,6 +13,7 @@ import com.andreikslpv.flickrrecent.databinding.FragmentGalleryBinding
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
 import com.andreikslpv.flickrrecent.presentation.ui.recyclers.PhotoOnItemClickListener
 import com.andreikslpv.flickrrecent.presentation.ui.recyclers.PhotoRecyclerAdapter
+import com.andreikslpv.flickrrecent.presentation.ui.recyclers.SpaceItemDecoration
 import com.andreikslpv.flickrrecent.presentation.ui.utils.viewModelCreator
 import com.andreikslpv.flickrrecent.presentation.vm.GalleryViewModel
 import com.bumptech.glide.Glide
@@ -55,6 +56,12 @@ class GalleryFragment : Fragment() {
     }
 
     private fun initPhotoListRecycler() {
+        val decorator = SpaceItemDecoration(
+            paddingTopInDp = 4,
+            paddingBottomInDp = 4,
+            paddingRightInDp = 4,
+            paddingLeftInDp = 8,
+        )
         binding.galleryRecycler.apply {
             photosAdapter = PhotoRecyclerAdapter(
                 object : PhotoOnItemClickListener {
@@ -74,6 +81,7 @@ class GalleryFragment : Fragment() {
             adapter = photosAdapter
             layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            addItemDecoration(decorator)
         }
     }
 

@@ -18,6 +18,7 @@
     <dimen name="FAB_dimen">24dp</dimen>
     <dimen name="margin_of_RV">4dp</dimen>
     <dimen name="item_padding">4dp</dimen>
+    <dimen name="delete_button_dimen">24dp</dimen>
 
     <dimen name="margin_of_elements">8dp</dimen>
 

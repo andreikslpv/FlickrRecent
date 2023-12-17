@@ -29,7 +29,7 @@ class PhotoRecyclerAdapter(
                 holder.binding.itemContainer.setOnClickListener {
                     imageClickListener.click(items[position])
                 }
-                holder.binding.itemFabDelete.setOnClickListener {
+                holder.binding.itemButtonDelete.setOnClickListener {
                     fabClickListener.click(items[position])
                 }
             }
