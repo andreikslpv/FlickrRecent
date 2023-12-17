@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.andreikslpv.flickrrecent.App
 import com.andreikslpv.flickrrecent.R
@@ -44,7 +43,6 @@ class PhotoFragment : Fragment() {
 
         observeCurrentPhoto()
         setupSwipeToRefresh()
-        observeNotificationSetting()
         initButtons()
     }
 
@@ -57,23 +55,22 @@ class PhotoFragment : Fragment() {
         viewModel.currentPhoto.observe(viewLifecycleOwner) { response ->
             when (response) {
                 Response.Loading -> {
-                    binding.photoProgressBar.isVisible = true
+                    binding.photoProgressBar.show()
                 }
 
                 is Response.Success -> {
                     Glide.with(this@PhotoFragment)
                         .load(response.data.linkBigPhoto)
-                        .fitCenter()
                         .into(binding.photoImage)
                     binding.photoFabFavorites.setImageResource(
                         if (response.data.isFavorite) R.drawable.ic_baseline_favorite
                         else R.drawable.ic_baseline_favorite_border
                     )
-                    binding.photoProgressBar.isVisible = false
+                    binding.photoProgressBar.hide()
                 }
 
                 is Response.Failure -> {
-                    binding.photoProgressBar.isVisible = false
+                    binding.photoProgressBar.hide()
                     getString(R.string.api_error).makeToast(requireContext())
                 }
             }
@@ -87,22 +84,9 @@ class PhotoFragment : Fragment() {
         }
     }
 
-    private fun observeNotificationSetting() {
-        viewModel.notificationSetting.observe(viewLifecycleOwner) {
-            binding.photoFabNotification.setImageResource(
-                if (it) R.drawable.ic_baseline_notifications
-                else R.drawable.ic_baseline_notifications_off
-            )
-        }
-    }
-
     private fun initButtons() {
         binding.photoFabFavorites.setOnClickListener {
             viewModel.changePhotoStatus()
-        }
-
-        binding.photoFabNotification.setOnClickListener {
-            viewModel.inverseNotificationSetting()
         }
     }
 

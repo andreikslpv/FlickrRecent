@@ -1,6 +1,7 @@
 package com.andreikslpv.flickrrecent.presentation.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.graphics.Color
@@ -59,7 +60,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         createChannel()
+        initToolbar()
         initBottomNavigationMenu()
+        observeNotificationSetting()
         // если первый, то запускаем фрагмент Photo
         if (savedInstanceState == null)
             changeFragment(PhotoFragment(), FragmentsType.PHOTO)
@@ -93,6 +96,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun initToolbar() {
+        binding.toolbar.menu.findItem(R.id.notificationButton).setOnMenuItemClickListener {
+            viewModel.inverseNotificationSetting()
+            true
+        }
+    }
+
     private fun initBottomNavigationMenu() {
         binding.bottomNavigation.setOnItemSelectedListener {
             val currentFragment = supportFragmentManager.findFragmentById(R.id.fragmentPlaceholder)
@@ -120,6 +130,10 @@ class MainActivity : AppCompatActivity() {
             .replace(R.id.fragmentPlaceholder, fragment, type.tag)
             .addToBackStack(null)
             .commit()
+        when (type) {
+            FragmentsType.PHOTO -> binding.toolbar.title = getString(R.string.menu_photo)
+            FragmentsType.GALLERY -> binding.toolbar.title = getString(R.string.menu_gallery)
+        }
     }
 
     private fun requestPermission() {
@@ -132,7 +146,15 @@ class MainActivity : AppCompatActivity() {
                 singlePermission.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+    }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private fun observeNotificationSetting() {
+        viewModel.notificationSetting.observe(this) {
+            binding.toolbar.menu.findItem(R.id.notificationButton).icon =
+                if (it) resources.getDrawable(R.drawable.ic_baseline_notifications, this.theme)
+                else resources.getDrawable(R.drawable.ic_baseline_notifications_off, this.theme)
+        }
     }
 
 }

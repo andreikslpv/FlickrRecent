@@ -8,8 +8,6 @@ import com.andreikslpv.flickrrecent.domain.usecase.GetRecentPhotoUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.favorites.ChangePhotoStatusUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.favorites.GetFavoritesUseCase
 import com.andreikslpv.flickrrecent.domain.usecase.notification.SetIsNeedToUpdatePhotoUseCase
-import com.andreikslpv.flickrrecent.domain.usecase.settings.InverseNotificationSettingUseCase
-import com.andreikslpv.flickrrecent.domain.usecase.settings.ObserveNotificationSettingsUseCase
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.combine
@@ -17,8 +15,6 @@ import kotlinx.coroutines.flow.combine
 class PhotoViewModel @AssistedInject constructor(
     getRecentPhotoUseCase: GetRecentPhotoUseCase,
     private val setIsNeedToUpdatePhotoUseCase: SetIsNeedToUpdatePhotoUseCase,
-    observeNotificationSettingsUseCase: ObserveNotificationSettingsUseCase,
-    private val inverseNotificationSettingUseCase: InverseNotificationSettingUseCase,
     private val changePhotoStatusUseCase: ChangePhotoStatusUseCase,
     getFavoritesUseCase: GetFavoritesUseCase,
 ) : ViewModel() {
@@ -28,8 +24,6 @@ class PhotoViewModel @AssistedInject constructor(
         getFavoritesUseCase(),
         ::merge,
     ).asLiveData()
-
-    val notificationSetting = observeNotificationSettingsUseCase().asLiveData()
 
     private fun merge(
         recentPhoto: Response<PhotoDomainModel>,
@@ -47,8 +41,6 @@ class PhotoViewModel @AssistedInject constructor(
     }
 
     fun refresh() = setIsNeedToUpdatePhotoUseCase()
-
-    fun inverseNotificationSetting() = inverseNotificationSettingUseCase()
 
     fun changePhotoStatus() {
         if (currentPhoto.value is Response.Success)

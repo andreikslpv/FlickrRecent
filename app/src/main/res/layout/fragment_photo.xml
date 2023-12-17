@@ -28,38 +28,21 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/photoProgressBar"
-        android:layout_width="@dimen/progress_bar_dimen"
-        android:layout_height="@dimen/progress_bar_dimen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:elevation="@dimen/progress_bar_elevation"
-        android:visibility="invisible" />
+        android:indeterminate="true" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/photoFabFavorites"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/FAB_margin"
-        android:layout_marginBottom="@dimen/FAB_margin"
-        android:elevation="@dimen/FAB_elevation"
-        app:backgroundTint="#CCCCCC"
-        app:layout_anchor="@id/photoNestedScrollView"
-        app:layout_anchorGravity="bottom|end"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        app:backgroundTint="@color/lime"
         app:srcCompat="@drawable/ic_baseline_favorite_border"
-        tools:ignore="ContentDescription" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/photoFabNotification"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/FAB_margin"
-        android:layout_marginBottom="@dimen/FAB_margin"
-        android:elevation="@dimen/FAB_elevation"
-        app:backgroundTint="#CCCCCC"
-        app:layout_anchor="@id/photoNestedScrollView"
-        app:layout_anchorGravity="bottom|start"
-        app:srcCompat="@drawable/ic_baseline_notifications_off"
         tools:ignore="ContentDescription" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
