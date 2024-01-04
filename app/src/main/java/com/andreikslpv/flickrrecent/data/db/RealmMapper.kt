@@ -8,11 +8,11 @@ object RealmToDomainListMapper : BaseMapper<List<PhotoRealmModel>, List<PhotoDom
     override fun map(type: List<PhotoRealmModel>?): List<PhotoDomainModel> {
         return type?.map {
             PhotoDomainModel(
-                id = it?.id ?: "",
-                owner = it?.owner ?: "",
-                title = it?.title ?: "",
-                linkSmallPhoto = it?.linkSmallPhoto ?: "",
-                linkBigPhoto = it?.linkBigPhoto ?: "",
+                id = it.id,
+                owner = it.owner,
+                title = it.title,
+                linkSmallPhoto = it.linkSmallPhoto,
+                linkBigPhoto = it.linkBigPhoto,
                 isFavorite = true,
             )
         } ?: listOf()

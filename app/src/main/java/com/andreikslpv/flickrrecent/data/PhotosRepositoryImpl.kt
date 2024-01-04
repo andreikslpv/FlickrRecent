@@ -3,6 +3,8 @@ package com.andreikslpv.flickrrecent.data
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.core.net.toUri
 import com.andreikslpv.flickrrecent.data.api.DtoToDomainMapper
 import com.andreikslpv.flickrrecent.data.api.FlickrApi
 import com.andreikslpv.flickrrecent.data.cache.PhotoCacheModel
@@ -22,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import retrofit2.Retrofit
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
@@ -34,10 +37,12 @@ import kotlin.coroutines.suspendCoroutine
 const val NAME_OF_CACHE = "lastCachedPhoto.png"
 
 class PhotosRepositoryImpl @Inject constructor(
-    private val flickrApi: FlickrApi,
+    retrofit: Retrofit,
     private val realmDb: Realm,
     private val context: Context,
 ) : PhotosRepository {
+
+    private val flickrApi = retrofit.create(FlickrApi::class.java)
 
     override fun getRecentPhoto() = flow {
         emit(Response.Loading)
@@ -45,13 +50,16 @@ class PhotosRepositoryImpl @Inject constructor(
             val response = flickrApi.getPhotos()
             if (response.isSuccessful) {
                 val photos = response.body()?.photos?.photo
-                if (photos.isNullOrEmpty()) {
+                if (photos.isNullOrEmpty() || photos[0] == null) {
                     emit(Response.Failure(Throwable("unknown error")))
                 } else {
                     val photo = DtoToDomainMapper.map(photos[0])
-                    emit(Response.Success(photo))
-                    savePhotoToDisk(photo)
-                    savePhotoToCache(photo)
+                    if (photo != PhotoDomainModel()) {
+                        emit(Response.Success(photo))
+                        savePhotoToCache(photo)
+                    } else {
+                        emit(Response.Failure(Throwable("unknown error")))
+                    }
                 }
             } else {
                 val errorMsg = response.errorBody()?.string() ?: ""
@@ -65,8 +73,7 @@ class PhotosRepositoryImpl @Inject constructor(
 
     override fun getPhotoFromCache() = flow {
         emit(Response.Loading)
-        val photo =
-            realmDb.query<PhotoCacheModel>("id = $0", "1").find().firstOrNull()
+        val photo = realmDb.query<PhotoCacheModel>("id = $0", "1").find().firstOrNull()
         if (photo != null) {
             emit(Response.Success(CacheToDomainMapper.map(photo)))
         } else {
@@ -96,38 +103,48 @@ class PhotosRepositoryImpl @Inject constructor(
         .asFlow()
         .map { RealmToDomainListMapper.map(it.list) }
 
+
     private suspend fun savePhotoToCache(photo: PhotoDomainModel) {
+        val job = CoroutineScope(Dispatchers.IO).async {
+            loadImage(photo.linkBigPhoto)
+        }
+        val bitmap = job.await()
+        bitmap?.let {
+            val newUri = convertBitmapToFile(it).toString()
+            photo.linkBigPhoto = newUri
+            photo.linkSmallPhoto = newUri
+        }
+
         realmDb.write {
             val cachedPhoto = DomainToCacheMapper.map(photo)
             copyToRealm(cachedPhoto, UpdatePolicy.ALL)
         }
     }
 
-    private suspend fun savePhotoToDisk(photo: PhotoDomainModel) {
-        val job = CoroutineScope(Dispatchers.IO).async {
-            loadImage(photo.linkBigPhoto)
-        }
-        convertBitmapToFile(job.await())
-    }
-
-    private suspend fun loadImage(url: String): Bitmap {
+    private suspend fun loadImage(url: String): Bitmap? {
         return suspendCoroutine {
             Executors.newSingleThreadExecutor().execute {
-                val bitmap = BitmapFactory.decodeStream(URL(url).openConnection().getInputStream())
+                val bitmap = try {
+                    BitmapFactory.decodeStream(URL(url).openConnection().getInputStream())
+                } catch (e: Exception) {
+                    null
+                }
                 it.resume(bitmap)
             }
         }
     }
 
-    private fun convertBitmapToFile(bitmap: Bitmap) {
+    private fun convertBitmapToFile(bitmap: Bitmap): Uri {
         val dest = File("${context.filesDir}${File.separator}$NAME_OF_CACHE")
-        try {
+        return try {
             val out = FileOutputStream(dest)
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             out.flush()
             out.close()
+            dest.toUri()
         } catch (e: Exception) {
             e.printStackTrace()
+            Uri.parse("")
         }
     }
 }

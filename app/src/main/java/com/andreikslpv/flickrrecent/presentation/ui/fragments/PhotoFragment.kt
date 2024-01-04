@@ -14,6 +14,7 @@ import com.andreikslpv.flickrrecent.presentation.ui.utils.makeToast
 import com.andreikslpv.flickrrecent.presentation.ui.utils.viewModelCreator
 import com.andreikslpv.flickrrecent.presentation.vm.PhotoViewModel
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import javax.inject.Inject
 
 class PhotoFragment : Fragment() {
@@ -61,6 +62,9 @@ class PhotoFragment : Fragment() {
                 is Response.Success -> {
                     Glide.with(this@PhotoFragment)
                         .load(response.data.linkBigPhoto)
+                        // отключаем кеширование glide, чтобы гарантировать загрузку из нашего кеша
+                        .skipMemoryCache(true) // Disable memory caching
+                        .diskCacheStrategy(DiskCacheStrategy.NONE) // Disable disk caching
                         .into(binding.photoImage)
                     binding.photoFabFavorites.setImageResource(
                         if (response.data.isFavorite) R.drawable.ic_baseline_favorite

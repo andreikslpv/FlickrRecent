@@ -1,7 +1,6 @@
 package com.andreikslpv.flickrrecent.di
 
 import com.andreikslpv.flickrrecent.BuildConfig
-import com.andreikslpv.flickrrecent.data.api.FlickrApi
 import com.andreikslpv.flickrrecent.data.api.FlickrConstants
 import dagger.Module
 import dagger.Provides
@@ -38,9 +37,9 @@ class RemoteModule {
         .client(okHttpClient)
         .build()
 
-    @Provides
-    @Singleton
-    fun provideFlickrApi(retrofit: Retrofit): FlickrApi = retrofit.create(
-        FlickrApi::class.java
-    )
+//    @Provides
+//    @Singleton
+//    fun provideFlickrApi(retrofit: Retrofit): FlickrApi = retrofit.create(
+//        FlickrApi::class.java
+//    )
 }
