@@ -5,9 +5,8 @@ import com.andreikslpv.flickrrecent.data.api.FlickrApi
 import com.andreikslpv.flickrrecent.data.api.dto.FlickrResults
 import com.andreikslpv.flickrrecent.data.api.dto.Photo
 import com.andreikslpv.flickrrecent.data.api.dto.Photos
-import com.andreikslpv.flickrrecent.data.cache.PhotoCacheModel
-import com.andreikslpv.flickrrecent.data.db.PhotoRealmModel
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
+import com.andreikslpv.flickrrecent.domain.models.UnknownException
 import com.andreikslpv.flickrrecent.testutils.arranged
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -17,12 +16,14 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit4.MockKRule
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -53,6 +54,8 @@ class PhotosRepositoryImplTest {
     fun cleanUp() {
         unmockkAll()
     }
+
+    // getRecentPhoto method
 
     @Test
     fun `getRecentPhoto method must be called 1 time`() = runTest {
@@ -92,10 +95,61 @@ class PhotosRepositoryImplTest {
         val collectedResults = photosRepositoryImpl.getRecentPhoto().toList()
 
         assertEquals(2, collectedResults.size)
+        assert(collectedResults[0] is com.andreikslpv.flickrrecent.domain.models.Response.Loading)
         val photo = collectedResults[1]
         assertEquals(expectedPhoto, photo.getValueOrNull())
     }
 
+    @Test
+    fun `getRecentPhoto method must emit Response_Failure when response_isSuccessful == false`() =
+        runTest {
+
+            coEvery { flickrApi.getPhotos() } returns Response.error(
+                404,
+                "ResponseBody".toResponseBody()
+            )
+
+            val collectedResults = photosRepositoryImpl.getRecentPhoto().toList()
+
+            assertEquals(2, collectedResults.size)
+            assert(collectedResults[0] is com.andreikslpv.flickrrecent.domain.models.Response.Loading)
+            assert(collectedResults[1] is com.andreikslpv.flickrrecent.domain.models.Response.Failure)
+        }
+
+    @Test
+    fun `getRecentPhoto method must emit Response_Failure(UnknownException) when received FlickrResults is null`() =
+        runTest {
+            val flickrResult: FlickrResults? = null
+            val responseSuccess = Response.success(200, flickrResult)
+            coEvery { flickrApi.getPhotos() } returns responseSuccess
+
+            val collectedResults = photosRepositoryImpl.getRecentPhoto().toList()
+
+            assertEquals(2, collectedResults.size)
+            assert(collectedResults[0] is com.andreikslpv.flickrrecent.domain.models.Response.Loading)
+            val responseError =
+                (collectedResults[1] as com.andreikslpv.flickrrecent.domain.models.Response.Failure).error
+            assert(responseError is UnknownException)
+        }
+
+    @Test
+    fun `getRecentPhoto method must emit Response_Failure(UnknownException) when received FlickrResults_photos is null`() =
+        runTest {
+            val flickrResult = FlickrResults(null, null)
+            val responseSuccess = Response.success(200, flickrResult)
+            coEvery { flickrApi.getPhotos() } returns responseSuccess
+
+            val collectedResults = photosRepositoryImpl.getRecentPhoto().toList()
+
+            assertEquals(2, collectedResults.size)
+            assert(collectedResults[0] is com.andreikslpv.flickrrecent.domain.models.Response.Loading)
+            val responseError =
+                (collectedResults[1] as com.andreikslpv.flickrrecent.domain.models.Response.Failure).error
+            assert(responseError is UnknownException)
+        }
+
+
+    // -------------------------------------------
 
     private fun createPhotosRepositoryImpl(
         retrofit: Retrofit = createRetrofit(),
@@ -112,13 +166,12 @@ class PhotosRepositoryImplTest {
     }
 
     private fun createRealm(): Realm {
-        val configuration = RealmConfiguration.create(
-            setOf(
-                PhotoRealmModel::class,
-                PhotoCacheModel::class
-            )
-        )
-        return Realm.open(configuration)
+        val realm = mockk<Realm>(relaxed = true)
+        val realmConfiguration = mockk<RealmConfiguration>(relaxed = true)
+        mockkObject(Realm)
+        //coJustRun { realm.write { } }
+        every { Realm.open(realmConfiguration) } returns realm
+        return realm
     }
 
 }

@@ -16,6 +16,7 @@ import com.andreikslpv.flickrrecent.data.db.RealmToDomainListMapper
 import com.andreikslpv.flickrrecent.domain.PhotosRepository
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
 import com.andreikslpv.flickrrecent.domain.models.Response
+import com.andreikslpv.flickrrecent.domain.models.UnknownException
 import io.realm.kotlin.Realm
 import io.realm.kotlin.UpdatePolicy
 import io.realm.kotlin.ext.query
@@ -51,14 +52,14 @@ class PhotosRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 val photos = response.body()?.photos?.photo
                 if (photos.isNullOrEmpty() || photos[0] == null) {
-                    emit(Response.Failure(Throwable("unknown error")))
+                    emit(Response.Failure(UnknownException()))
                 } else {
                     val photo = DtoToDomainMapper.map(photos[0])
                     if (photo != PhotoDomainModel()) {
                         emit(Response.Success(photo))
                         savePhotoToCache(photo)
                     } else {
-                        emit(Response.Failure(Throwable("unknown error")))
+                        emit(Response.Failure(UnknownException()))
                     }
                 }
             } else {

@@ -37,9 +37,4 @@ class RemoteModule {
         .client(okHttpClient)
         .build()
 
-//    @Provides
-//    @Singleton
-//    fun provideFlickrApi(retrofit: Retrofit): FlickrApi = retrofit.create(
-//        FlickrApi::class.java
-//    )
 }
