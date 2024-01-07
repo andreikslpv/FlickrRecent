@@ -5,8 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.core.net.toUri
-import com.andreikslpv.flickrrecent.data.api.DtoToDomainMapper
 import com.andreikslpv.flickrrecent.data.api.FlickrApi
+import com.andreikslpv.flickrrecent.data.api.FlickrToDomainMapper
 import com.andreikslpv.flickrrecent.data.cache.PhotoCacheModel
 import com.andreikslpv.flickrrecent.data.db.CacheToDomainMapper
 import com.andreikslpv.flickrrecent.data.db.DomainToCacheMapper
@@ -14,6 +14,7 @@ import com.andreikslpv.flickrrecent.data.db.DomainToRealmMapper
 import com.andreikslpv.flickrrecent.data.db.PhotoRealmModel
 import com.andreikslpv.flickrrecent.data.db.RealmToDomainListMapper
 import com.andreikslpv.flickrrecent.domain.PhotosRepository
+import com.andreikslpv.flickrrecent.domain.models.EmptyCacheException
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
 import com.andreikslpv.flickrrecent.domain.models.Response
 import com.andreikslpv.flickrrecent.domain.models.UnknownException
@@ -50,17 +51,12 @@ class PhotosRepositoryImpl @Inject constructor(
         try {
             val response = flickrApi.getPhotos()
             if (response.isSuccessful) {
-                val photos = response.body()?.photos?.photo
-                if (photos.isNullOrEmpty() || photos[0] == null) {
-                    emit(Response.Failure(UnknownException()))
+                val photo = FlickrToDomainMapper.map(response.body())
+                if (photo != PhotoDomainModel()) {
+                    emit(Response.Success(photo))
+                    savePhotoToCache(photo)
                 } else {
-                    val photo = DtoToDomainMapper.map(photos[0])
-                    if (photo != PhotoDomainModel()) {
-                        emit(Response.Success(photo))
-                        savePhotoToCache(photo)
-                    } else {
-                        emit(Response.Failure(UnknownException()))
-                    }
+                    emit(Response.Failure(UnknownException()))
                 }
             } else {
                 val errorMsg = response.errorBody()?.string() ?: ""
@@ -78,7 +74,7 @@ class PhotosRepositoryImpl @Inject constructor(
         if (photo != null) {
             emit(Response.Success(CacheToDomainMapper.map(photo)))
         } else {
-            emit(Response.Failure(Throwable("Cache is empty")))
+            emit(Response.Failure(EmptyCacheException()))
         }
     }
 

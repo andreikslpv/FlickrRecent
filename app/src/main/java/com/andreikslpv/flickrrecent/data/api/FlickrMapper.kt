@@ -1,6 +1,7 @@
 package com.andreikslpv.flickrrecent.data.api
 
 import com.andreikslpv.flickrrecent.data.api.FlickrConstants.PHOTO_URL
+import com.andreikslpv.flickrrecent.data.api.dto.FlickrResults
 import com.andreikslpv.flickrrecent.data.api.dto.Photo
 import com.andreikslpv.flickrrecent.domain.BaseMapper
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
@@ -16,5 +17,15 @@ object DtoToDomainMapper : BaseMapper<Photo, PhotoDomainModel> {
             linkBigPhoto = "$PHOTO_URL/${type.server}/${type.id}_${type.secret}_b.jpg",
             isFavorite = false,
         )
+    }
+}
+
+object FlickrToDomainMapper : BaseMapper<FlickrResults, PhotoDomainModel> {
+    override fun map(type: FlickrResults?): PhotoDomainModel {
+        if (type == null) return PhotoDomainModel()
+        if (type.photos == null) return PhotoDomainModel()
+        if (type.photos.photo.isNullOrEmpty()) return PhotoDomainModel()
+        if (type.photos.photo[0] == null) return PhotoDomainModel()
+        return DtoToDomainMapper.map(type.photos.photo[0])
     }
 }

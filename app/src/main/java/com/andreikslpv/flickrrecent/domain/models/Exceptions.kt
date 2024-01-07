@@ -6,4 +6,6 @@ open class AppException : RuntimeException {
     constructor(cause: Throwable) : super(cause)
 }
 
-class UnknownException(message: String = "unknown error") : AppException(message)
+class UnknownException(message: String = "Unknown error") : AppException(message)
+
+class EmptyCacheException(message: String = "Cache is empty") : AppException(message)

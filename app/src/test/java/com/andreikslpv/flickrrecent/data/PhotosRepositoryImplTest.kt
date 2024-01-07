@@ -2,9 +2,8 @@ package com.andreikslpv.flickrrecent.data
 
 import android.content.Context
 import com.andreikslpv.flickrrecent.data.api.FlickrApi
+import com.andreikslpv.flickrrecent.data.api.FlickrToDomainMapper
 import com.andreikslpv.flickrrecent.data.api.dto.FlickrResults
-import com.andreikslpv.flickrrecent.data.api.dto.Photo
-import com.andreikslpv.flickrrecent.data.api.dto.Photos
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
 import com.andreikslpv.flickrrecent.domain.models.UnknownException
 import com.andreikslpv.flickrrecent.testutils.arranged
@@ -68,42 +67,44 @@ class PhotosRepositoryImplTest {
     }
 
     @Test
-    fun `getRecentPhoto method must return photo from endpoint`() = runTest {
-        val flickrResult = FlickrResults(
-            Photos(
-                1,
-                1,
-                1,
-                listOf(
-                    Photo(1, "1", 1, 1, 1, "1", "1", "1", "1")
-                ),
-                1
-            ),
-            null
-        )
-        val responseSuccess = Response.success(flickrResult)
-        val expectedPhoto = PhotoDomainModel(
-            "1",
-            "1",
-            "1",
-            "https://live.staticflickr.com/1/1_1_q.jpg",
-            "https://live.staticflickr.com/1/1_1_b.jpg",
-            false
-        )
-        coEvery { flickrApi.getPhotos() } returns responseSuccess
+    fun `getRecentPhoto method must emit Response_Success when response_isSuccessful == true and FlickrToDomainMapper return PhotoDomainModel`() =
+        runTest {
+            val flickrResult = mockk<FlickrResults>(relaxed = true)
+            val responseSuccess = Response.success(200, flickrResult)
+            coEvery { flickrApi.getPhotos() } returns responseSuccess
+            mockkObject(FlickrToDomainMapper)
+            val expectedPhotoDomainModel = mockk<PhotoDomainModel>(relaxed = true)
+            every { FlickrToDomainMapper.map(any() as FlickrResults) } returns expectedPhotoDomainModel
 
-        val collectedResults = photosRepositoryImpl.getRecentPhoto().toList()
+            val collectedResults = photosRepositoryImpl.getRecentPhoto().toList()
 
-        assertEquals(2, collectedResults.size)
-        assert(collectedResults[0] is com.andreikslpv.flickrrecent.domain.models.Response.Loading)
-        val photo = collectedResults[1]
-        assertEquals(expectedPhoto, photo.getValueOrNull())
-    }
+            assertEquals(2, collectedResults.size)
+            assert(collectedResults[0] is com.andreikslpv.flickrrecent.domain.models.Response.Loading)
+            assertEquals(expectedPhotoDomainModel, collectedResults[1].getValueOrNull())
+        }
+
+    @Test
+    fun `getRecentPhoto method must emit Response_Failure(UnknownException) when response_isSuccessful == true and FlickrToDomainMapper return empty PhotoDomainModel`() =
+        runTest {
+            val flickrResult = mockk<FlickrResults>(relaxed = true)
+            val responseSuccess = Response.success(200, flickrResult)
+            coEvery { flickrApi.getPhotos() } returns responseSuccess
+            mockkObject(FlickrToDomainMapper)
+            every { FlickrToDomainMapper.map(any() as FlickrResults) } returns PhotoDomainModel()
+
+            val collectedResults = photosRepositoryImpl.getRecentPhoto().toList()
+
+            assertEquals(2, collectedResults.size)
+            assert(collectedResults[0] is com.andreikslpv.flickrrecent.domain.models.Response.Loading)
+            assert(collectedResults[1] is com.andreikslpv.flickrrecent.domain.models.Response.Failure)
+            val responseError =
+                (collectedResults[1] as com.andreikslpv.flickrrecent.domain.models.Response.Failure).error
+            assert(responseError is UnknownException)
+        }
 
     @Test
     fun `getRecentPhoto method must emit Response_Failure when response_isSuccessful == false`() =
         runTest {
-
             coEvery { flickrApi.getPhotos() } returns Response.error(
                 404,
                 "ResponseBody".toResponseBody()
@@ -116,37 +117,6 @@ class PhotosRepositoryImplTest {
             assert(collectedResults[1] is com.andreikslpv.flickrrecent.domain.models.Response.Failure)
         }
 
-    @Test
-    fun `getRecentPhoto method must emit Response_Failure(UnknownException) when received FlickrResults is null`() =
-        runTest {
-            val flickrResult: FlickrResults? = null
-            val responseSuccess = Response.success(200, flickrResult)
-            coEvery { flickrApi.getPhotos() } returns responseSuccess
-
-            val collectedResults = photosRepositoryImpl.getRecentPhoto().toList()
-
-            assertEquals(2, collectedResults.size)
-            assert(collectedResults[0] is com.andreikslpv.flickrrecent.domain.models.Response.Loading)
-            val responseError =
-                (collectedResults[1] as com.andreikslpv.flickrrecent.domain.models.Response.Failure).error
-            assert(responseError is UnknownException)
-        }
-
-    @Test
-    fun `getRecentPhoto method must emit Response_Failure(UnknownException) when received FlickrResults_photos is null`() =
-        runTest {
-            val flickrResult = FlickrResults(null, null)
-            val responseSuccess = Response.success(200, flickrResult)
-            coEvery { flickrApi.getPhotos() } returns responseSuccess
-
-            val collectedResults = photosRepositoryImpl.getRecentPhoto().toList()
-
-            assertEquals(2, collectedResults.size)
-            assert(collectedResults[0] is com.andreikslpv.flickrrecent.domain.models.Response.Loading)
-            val responseError =
-                (collectedResults[1] as com.andreikslpv.flickrrecent.domain.models.Response.Failure).error
-            assert(responseError is UnknownException)
-        }
 
 
     // -------------------------------------------
