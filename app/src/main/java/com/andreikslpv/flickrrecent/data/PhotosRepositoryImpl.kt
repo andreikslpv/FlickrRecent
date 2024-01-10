@@ -13,6 +13,7 @@ import com.andreikslpv.flickrrecent.data.db.DomainToCacheMapper
 import com.andreikslpv.flickrrecent.data.db.DomainToRealmMapper
 import com.andreikslpv.flickrrecent.data.db.PhotoRealmModel
 import com.andreikslpv.flickrrecent.data.db.RealmToDomainListMapper
+import com.andreikslpv.flickrrecent.data.db.toListMock
 import com.andreikslpv.flickrrecent.domain.PhotosRepository
 import com.andreikslpv.flickrrecent.domain.models.EmptyCacheException
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
@@ -93,7 +94,7 @@ class PhotosRepositoryImpl @Inject constructor(
 
     override fun getFavoritesIds() = realmDb.query<PhotoRealmModel>()
         .find()
-        .toList()
+        .toListMock()
         .map { it.id }
 
     override fun getFavoritesFlow() = realmDb.query<PhotoRealmModel>()
@@ -102,18 +103,18 @@ class PhotosRepositoryImpl @Inject constructor(
 
 
     private suspend fun savePhotoToCache(photo: PhotoDomainModel) {
+        val newPhoto = photo.copy()
         val job = CoroutineScope(Dispatchers.IO).async {
-            loadImage(photo.linkBigPhoto)
+            loadImage(newPhoto.linkBigPhoto)
         }
         val bitmap = job.await()
         bitmap?.let {
             val newUri = convertBitmapToFile(it).toString()
-            photo.linkBigPhoto = newUri
-            photo.linkSmallPhoto = newUri
+            newPhoto.linkBigPhoto = newUri
+            newPhoto.linkSmallPhoto = newUri
         }
-
         realmDb.write {
-            val cachedPhoto = DomainToCacheMapper.map(photo)
+            val cachedPhoto = DomainToCacheMapper.map(newPhoto)
             copyToRealm(cachedPhoto, UpdatePolicy.ALL)
         }
     }

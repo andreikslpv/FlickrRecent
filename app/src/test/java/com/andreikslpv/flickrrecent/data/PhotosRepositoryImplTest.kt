@@ -6,6 +6,8 @@ import com.andreikslpv.flickrrecent.data.api.FlickrToDomainMapper
 import com.andreikslpv.flickrrecent.data.api.dto.FlickrResults
 import com.andreikslpv.flickrrecent.data.cache.PhotoCacheModel
 import com.andreikslpv.flickrrecent.data.db.CacheToDomainMapper
+import com.andreikslpv.flickrrecent.data.db.PhotoRealmModel
+import com.andreikslpv.flickrrecent.data.db.toListMock
 import com.andreikslpv.flickrrecent.domain.models.EmptyCacheException
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
 import com.andreikslpv.flickrrecent.domain.models.UnknownException
@@ -20,8 +22,10 @@ import io.mockk.junit4.MockKRule
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.unmockkAll
+import io.mockk.verify
 import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
 import io.realm.kotlin.ext.query
@@ -218,58 +222,44 @@ class PhotosRepositoryImplTest {
 
     // getFavoritesIds --------------------------
 
-//    @Test
-//    fun `getFavoritesIds method must call Realm's methods 1 time`() {
-//        val mockRealmQuery = mockk<RealmQuery<PhotoRealmModel>>(relaxed = true)
-//        val mockRealmResults = mockk<RealmResults<PhotoRealmModel>>(relaxed = true)
-//        every { realm.query<PhotoRealmModel>() } returns mockRealmQuery
-//        every { mockRealmQuery.find() } returns mockRealmResults
-//
-//        mockkStatic("kotlin.reflect.jvm.internal.impl.utils.CollectionsKt")
-//        val iterClass = mockkClass(Iterable::class)
-//        with(iterClass) {
-//            every { mockRealmResults.toList() } returns emptyList()
-//        }
-//
-//
-//
-//        photosRepositoryImpl.getFavoritesIds()
-//
-//        verify(exactly = 1) { realm.query<PhotoRealmModel>() }
-//        confirmVerified(realm)
-//        verify(exactly = 1) { mockRealmQuery.find() }
-//        confirmVerified(mockRealmQuery)
-//        verify(exactly = 1) { mockRealmResults.toList() }
-//        confirmVerified(mockRealmResults)
-//    }
-//
-//    @Test
-//    fun `getFavoritesIds method must return list of photo's id`() {
-//        val mockPhotoRealmModel1 = PhotoRealmModel().apply {
-//            id = "1"
-//            owner = ""
-//            title = ""
-//            linkSmallPhoto = ""
-//            linkBigPhoto = ""
-//        }
-//        val mockPhotoRealmModel2 = PhotoRealmModel().apply {
-//            id = "2"
-//            owner = ""
-//            title = ""
-//            linkSmallPhoto = ""
-//            linkBigPhoto = ""
-//        }
-//        every {
-//            realm.query<PhotoRealmModel>()
-//                .find()
-//                .toList()
-//        } returns emptyList()
-//
-//        val results = photosRepositoryImpl.getFavoritesIds()
-//
-//        assertEquals(emptyList<String>(), results)
-//    }
+    @Test
+    fun `getFavoritesIds method must call Realm's methods 1 time and returns list of favorites ids`() {
+        mockkStatic("com.andreikslpv.flickrrecent.data.db.RealmExtensionsKt")
+        val mockRealmQuery = mockk<RealmQuery<PhotoRealmModel>>(relaxed = true)
+        val mockRealmResults = mockk<RealmResults<PhotoRealmModel>>(relaxed = true)
+        val mockPhotoRealmModel1 = PhotoRealmModel().apply {
+            id = "1"
+            owner = ""
+            title = ""
+            linkSmallPhoto = ""
+            linkBigPhoto = ""
+        }
+        val mockPhotoRealmModel2 = PhotoRealmModel().apply {
+            id = "2"
+            owner = ""
+            title = ""
+            linkSmallPhoto = ""
+            linkBigPhoto = ""
+        }
+        val mockedListPhotoRealmModel = listOf(mockPhotoRealmModel1, mockPhotoRealmModel2)
+        val expectedList = listOf("1", "2")
+        every { realm.query<PhotoRealmModel>() } returns mockRealmQuery
+        every { mockRealmQuery.find() } returns mockRealmResults
+        every { mockRealmResults.toListMock() } returns mockedListPhotoRealmModel
 
+        val results = photosRepositoryImpl.getFavoritesIds()
+
+        verify(exactly = 1) { realm.query<PhotoRealmModel>() }
+        confirmVerified(realm)
+        verify(exactly = 1) { mockRealmQuery.find() }
+        confirmVerified(mockRealmQuery)
+        verify(exactly = 1) { mockRealmResults.toListMock() }
+        confirmVerified(mockRealmResults)
+        assertEquals(expectedList, results)
+    }
+
+    // getFavoritesFlow -------------------------
+    // TODO
 
     // ------------------------------------------
 

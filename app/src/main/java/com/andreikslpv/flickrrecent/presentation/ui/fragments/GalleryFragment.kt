@@ -90,6 +90,9 @@ class GalleryFragment : Fragment() {
         viewModel.favorites.observe(viewLifecycleOwner) {
             photosAdapter.changeItems(it)
             photosAdapter.notifyDataSetChanged()
+            if (it.isNullOrEmpty())
+                Glide.with(this@GalleryFragment)
+                    .clear(binding.galleryImage)
         }
     }
 
