@@ -7,6 +7,7 @@ import com.andreikslpv.flickrrecent.data.api.dto.FlickrResults
 import com.andreikslpv.flickrrecent.data.cache.PhotoCacheModel
 import com.andreikslpv.flickrrecent.data.db.CacheToDomainMapper
 import com.andreikslpv.flickrrecent.data.db.PhotoRealmModel
+import com.andreikslpv.flickrrecent.data.db.RealmToDomainListMapper
 import com.andreikslpv.flickrrecent.data.db.toListMock
 import com.andreikslpv.flickrrecent.domain.models.EmptyCacheException
 import com.andreikslpv.flickrrecent.domain.models.PhotoDomainModel
@@ -29,8 +30,10 @@ import io.mockk.verify
 import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
 import io.realm.kotlin.ext.query
+import io.realm.kotlin.notifications.ResultsChange
 import io.realm.kotlin.query.RealmQuery
 import io.realm.kotlin.query.RealmResults
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -259,7 +262,25 @@ class PhotosRepositoryImplTest {
     }
 
     // getFavoritesFlow -------------------------
-    // TODO
+
+    @Test
+    fun `getFavoritesFlow method must call Realm's methods 1 time and returns list of favorites`() =
+        runTest {
+            val mockRealmQuery = mockk<RealmQuery<PhotoRealmModel>>(relaxed = true)
+            val mockRealmResults = mockk<Flow<ResultsChange<PhotoRealmModel>>>(relaxed = true)
+            mockkObject(RealmToDomainListMapper)
+            val expectedListOfPhotoDomainModel = mockk<List<PhotoDomainModel>>(relaxed = true)
+            coEvery { RealmToDomainListMapper.map(any() as List<PhotoRealmModel>) } returns expectedListOfPhotoDomainModel
+            coEvery { realm.query<PhotoRealmModel>() } returns mockRealmQuery
+            coEvery { mockRealmQuery.asFlow() } returns mockRealmResults
+
+            photosRepositoryImpl.getFavoritesFlow().toList()
+
+            coVerify(exactly = 1) { realm.query<PhotoRealmModel>() }
+            confirmVerified(realm)
+            coVerify(exactly = 1) { mockRealmQuery.asFlow() }
+            confirmVerified(mockRealmQuery)
+        }
 
     // ------------------------------------------
 
