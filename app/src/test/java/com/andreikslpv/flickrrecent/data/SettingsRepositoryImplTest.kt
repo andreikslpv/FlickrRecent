@@ -2,13 +2,23 @@ package com.andreikslpv.flickrrecent.data
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.andreikslpv.flickrrecent.domain.models.SettingsBooleanType
-import com.andreikslpv.flickrrecent.testutils.arranged
+import com.andreikslpv.flickrrecent.data.utils.getItem
+import com.andreikslpv.flickrrecent.data.utils.observeKey
+import com.andreikslpv.flickrrecent.data.utils.putItem
+import com.andreikslpv.flickrrecent.domain.models.AppSetting
+import com.andreikslpv.flickrrecent.testutils.wellDone
+import io.mockk.coVerifySequence
+import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit4.MockKRule
-import io.mockk.verifySequence
+import io.mockk.mockkStatic
+import io.mockk.verify
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -34,52 +44,57 @@ class SettingsRepositoryImplTest {
     fun setUp() {
         every { context.getSharedPreferences(any(), any()) } returns preferences
         every { preferences.edit() } returns editor
-        every {
-            preferences.getBoolean(
-                SettingsBooleanType.FIRST_LAUNCH.key,
-                SettingsBooleanType.FIRST_LAUNCH.defaultValue
-            )
-        } returns false
-
         settings = SettingsRepositoryImpl(context)
     }
 
     @Test
-    fun `getSettingBooleanValue method must return value from preferences`() {
-        every { preferences.getBoolean(any(), any()) } returns true
+    fun `getSettingValue method must return value from preferences`() {
+        class SettingTest(key: String = "test", defaultValue: Boolean = false) :
+            AppSetting(key, defaultValue)
+        every { preferences.getItem(any() as String, any() as Boolean) } returns true
 
-        val result = settings.getSettingBooleanValue(SettingsBooleanType.NOTIFICATION)
+        val result = settings.getSettingValue(SettingTest())
 
         Assert.assertEquals(true, result)
     }
 
-    //TODO
-//    @Test
-//    fun `getSettingBooleanValueFlow method must return flow for value from preferences`() =
-//        runTest {
-//            //mockkStatic("com.andreikslpv.flickrrecent.data.SharedPreferencesExtensionsKt")
-//            every { preferences.observeKey(any() as String, any() as Boolean) } returns flowOf(
-//                true,
-//                false
-//            )
-//
-//            val result =
-//                settings.getSettingBooleanValueFlow(SettingsBooleanType.NOTIFICATION).toList()
-//
-//            Assert.assertEquals(listOf(true, false), result)
-//        }
+    @Test
+    fun `putSettingValue method must set value in preferences`() {
+        mockkStatic("com.andreikslpv.flickrrecent.data.utils.PreferenceExtensionsKt")
+        class SettingTest(key: String = "test", defaultValue: Boolean = false) :
+            AppSetting(key, defaultValue)
+        every { preferences.putItem(SettingTest(), true) } returns Unit
+
+        settings.putSettingValue(SettingTest(), true)
+
+        verify(exactly = 1) {
+            preferences.putItem(SettingTest(), true)
+        }
+        confirmVerified(preferences)
+    }
 
     @Test
-    fun `setSettingBooleanValue method must set value in preferences`() {
-        arranged()
+    fun `observeSetting method must return flow for value from preferences`() = runTest {
+        class SettingTest(key: String = "test", defaultValue: Boolean = false) :
+            AppSetting(key, defaultValue)
+        every { preferences.observeKey(any() as String, any() as Boolean) } returns flowOf(
+            true,
+            false
+        )
 
-        settings.setSettingBooleanValue(SettingsBooleanType.NOTIFICATION, true)
+        val job = launch {
+            val result =
+                settings.observeSetting(SettingTest()).toList()
 
-        verifySequence {
-            preferences.getBoolean(any(), any())
-            preferences.edit()
-            editor.putBoolean(any(), any())
+            coVerifySequence {
+                preferences.registerOnSharedPreferenceChangeListener(any())
+                preferences.unregisterOnSharedPreferenceChangeListener(any())
+            }
+            Assert.assertEquals(listOf(true, false), result)
         }
+        job.cancel()
+
+        wellDone()
     }
 
 }

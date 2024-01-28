@@ -3,7 +3,7 @@ package com.andreikslpv.flickrrecent.domain.usecase.notification
 import com.andreikslpv.flickrrecent.domain.NotificationRepository
 import com.andreikslpv.flickrrecent.domain.SettingsRepository
 import com.andreikslpv.flickrrecent.domain.models.NotificationStatus
-import com.andreikslpv.flickrrecent.domain.models.SettingsBooleanType
+import com.andreikslpv.flickrrecent.domain.models.SettingNotification
 import javax.inject.Inject
 
 class GetNotificationStatusUseCase @Inject constructor(
@@ -12,7 +12,7 @@ class GetNotificationStatusUseCase @Inject constructor(
 ) {
 
     operator fun invoke(): NotificationStatus {
-        return if (!settingsRepository.getSettingBooleanValue(SettingsBooleanType.NOTIFICATION)) {
+        return if (!(settingsRepository.getSettingValue(SettingNotification()) as Boolean)) {
             NotificationStatus.NOTIFICATION_DISABLED
         } else {
             if (notificationRepository.getActivityRunningStatus()) NotificationStatus.NOTIFICATION_ENABLED_AND_NOT_SHOWING

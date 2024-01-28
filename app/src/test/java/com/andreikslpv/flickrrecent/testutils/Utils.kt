@@ -1,5 +1,28 @@
 package com.andreikslpv.flickrrecent.testutils
 
+import org.junit.Assert
+
+/**
+ * Catch the exception thrown by the [block] and check the exception type [T].
+ * This method fails with [AssertionError] if:
+ * - exception type is not a type or subtype of [T]
+ * - exception is not thrown by the [block]
+ */
+inline fun <reified T : Throwable> catch(block: () -> Unit): T {
+    try {
+        block()
+    } catch (e: Throwable) {
+        if (e is T) {
+            return e
+        } else {
+            Assert.fail("Invalid exception type. " +
+                    "Expected: ${T::class.java.simpleName}, " +
+                    "Actual: ${e.javaClass.simpleName}")
+        }
+    }
+    throw AssertionError("No expected exception")
+}
+
 /**
  * Indicates test passed successfully
  */

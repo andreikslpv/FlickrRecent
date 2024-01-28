@@ -1,13 +1,13 @@
 package com.andreikslpv.flickrrecent.domain
 
-import com.andreikslpv.flickrrecent.domain.models.SettingsBooleanType
+import com.andreikslpv.flickrrecent.domain.models.AppSetting
 import kotlinx.coroutines.flow.Flow
 
 interface SettingsRepository {
 
-    fun getSettingBooleanValue(setting: SettingsBooleanType): Boolean
+    fun getSettingValue(setting: AppSetting): Any
 
-    fun getSettingBooleanValueFlow(setting: SettingsBooleanType): Flow<Boolean>
+    fun putSettingValue(setting: AppSetting, value: Any)
 
-    fun setSettingBooleanValue(setting: SettingsBooleanType, value: Boolean)
+    fun observeSetting(setting: AppSetting): Flow<Any>
 }
